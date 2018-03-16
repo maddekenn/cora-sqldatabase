@@ -30,7 +30,7 @@
 	<version>0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>sqldatabase</name>
+	<name>cora-sqldatabase</name>
 
 	<url>http://maven.apache.org</url>
 

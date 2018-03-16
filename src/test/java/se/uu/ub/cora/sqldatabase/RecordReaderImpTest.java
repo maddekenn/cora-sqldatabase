@@ -38,11 +38,11 @@ import se.uu.ub.cora.connection.ResultSetSpy;
 
 public class RecordReaderImpTest {
 	private RecordReader recordReader;
-	private ConnectionProviderSpy sqlConnectionProviderSpy;
+	private SqlConnectionProviderSpy sqlConnectionProviderSpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		sqlConnectionProviderSpy = new ConnectionProviderSpy();
+		sqlConnectionProviderSpy = new SqlConnectionProviderSpy();
 		recordReader = RecordReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
 	}
 
