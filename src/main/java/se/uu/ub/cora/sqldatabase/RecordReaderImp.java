@@ -55,9 +55,6 @@ public final class RecordReaderImp implements RecordReader {
 
 	private List<Map<String, String>> tryToReadAllFromTable(String tableName) throws SQLException {
 		String sql = createSelectAllFor(tableName);
-		// try (Connection connection = sqlConnectionProvider.getConnection();
-		// PreparedStatement prepareStatement = connection.prepareStatement(sql);
-		// ResultSet resultSet = prepareStatement.executeQuery()) {
 		Connection connection = sqlConnectionProvider.getConnection();
 		try {
 			PreparedStatement prepareStatement = connection.prepareStatement(sql);
