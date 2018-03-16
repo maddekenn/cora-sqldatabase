@@ -26,7 +26,7 @@ import javax.sql.DataSource;
 
 import se.uu.ub.cora.sqldatabase.SqlStorageException;
 
-public class ContextConnectionProviderImp implements SqlConnectionProvider {
+public final class ContextConnectionProviderImp implements SqlConnectionProvider {
 	private InitialContext context;
 	private String name;
 	private DataSource ds;

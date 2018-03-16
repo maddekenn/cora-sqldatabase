@@ -31,7 +31,7 @@ import java.util.Map;
 
 import se.uu.ub.cora.connection.SqlConnectionProvider;
 
-public class RecordReaderImp implements RecordReader {
+public final class RecordReaderImp implements RecordReader {
 	private SqlConnectionProvider sqlConnectionProvider;
 
 	private RecordReaderImp(SqlConnectionProvider sqlConnectionProvider) {
@@ -55,25 +55,25 @@ public class RecordReaderImp implements RecordReader {
 
 	private List<Map<String, String>> tryToReadAllFromTable(String tableName) throws SQLException {
 		String sql = createSelectAllFor(tableName);
-		try (Connection connection = sqlConnectionProvider.getConnection();
-				PreparedStatement prepareStatement = connection.prepareStatement(sql);
-				ResultSet resultSet = prepareStatement.executeQuery()) {
-			// Connection connection = sqlConnectionProvider.getConnection();
-			// try {
-			// PreparedStatement prepareStatement = connection.prepareStatement(sql);
-			// try {
-			// ResultSet resultSet = prepareStatement.executeQuery();
-			// try {
-			List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
-			return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
-			// } finally {
-			// resultSet.close();
-			// }
-			// } finally {
-			// prepareStatement.close();
-			// }
-			// } finally {
-			// connection.close();
+		// try (Connection connection = sqlConnectionProvider.getConnection();
+		// PreparedStatement prepareStatement = connection.prepareStatement(sql);
+		// ResultSet resultSet = prepareStatement.executeQuery()) {
+		Connection connection = sqlConnectionProvider.getConnection();
+		try {
+			PreparedStatement prepareStatement = connection.prepareStatement(sql);
+			try {
+				ResultSet resultSet = prepareStatement.executeQuery();
+				try {
+					List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
+					return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
+				} finally {
+					resultSet.close();
+				}
+			} finally {
+				prepareStatement.close();
+			}
+		} finally {
+			connection.close();
 		}
 	}
 
