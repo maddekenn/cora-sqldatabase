@@ -113,4 +113,11 @@ public final class RecordReaderImp implements RecordReader {
 		return "select * from " + tableName;
 	}
 
+	@Override
+	public Map<String, String> readOneRowFromDbUsingTableAndConditions(String tableName,
+			Map<String, String> conditions) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

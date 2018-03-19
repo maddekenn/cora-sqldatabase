@@ -116,8 +116,6 @@ public class RecordReaderImpTest {
 	public void testIfResultSetContainsDataGetResultSetMetadataIsCalled() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		List<String> columnNames = createListOfColumnNames();
-		// List<String> columnNames = new ArrayList<>();
-		// columnNames.add("someColumnName");
 		resultSetSpy.columnNames = columnNames;
 
 		List<Map<String, String>> rowValues = new ArrayList<>();
