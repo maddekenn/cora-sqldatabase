@@ -33,6 +33,7 @@ import java.util.StringJoiner;
 import se.uu.ub.cora.connection.SqlConnectionProvider;
 
 public final class RecordReaderImp implements RecordReader {
+	private static final String ERROR_READING_DATA_FROM = "Error reading data from ";
 	private SqlConnectionProvider sqlConnectionProvider;
 
 	private RecordReaderImp(SqlConnectionProvider sqlConnectionProvider) {
@@ -49,8 +50,8 @@ public final class RecordReaderImp implements RecordReader {
 		try {
 			return tryToReadAllFromTable(tableName);
 		} catch (SQLException e) {
-			throw SqlStorageException
-					.withMessageAndException("Error reading data from " + tableName, e);
+			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
+					e);
 		}
 	}
 
@@ -63,19 +64,24 @@ public final class RecordReaderImp implements RecordReader {
 		Connection connection = sqlConnectionProvider.getConnection();
 		try {
 			PreparedStatement prepareStatement = connection.prepareStatement(sql);
-			try {
-				ResultSet resultSet = prepareStatement.executeQuery();
-				try {
-					List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
-					return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
-				} finally {
-					resultSet.close();
-				}
-			} finally {
-				prepareStatement.close();
-			}
+			return getResultUsingQuery(prepareStatement);
 		} finally {
 			connection.close();
+		}
+	}
+
+	private List<Map<String, String>> getResultUsingQuery(PreparedStatement prepareStatement)
+			throws SQLException {
+		try {
+			ResultSet resultSet = prepareStatement.executeQuery();
+			try {
+				List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
+				return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
+			} finally {
+				resultSet.close();
+			}
+		} finally {
+			prepareStatement.close();
 		}
 	}
 
@@ -124,8 +130,8 @@ public final class RecordReaderImp implements RecordReader {
 		try {
 			return tryToReadOneRowFromDbUsingTableAndConditions(tableName, conditions);
 		} catch (SQLException e) {
-			throw SqlStorageException
-					.withMessageAndException("Error reading data from " + tableName, e);
+			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
+					e);
 		}
 	}
 
@@ -144,17 +150,7 @@ public final class RecordReaderImp implements RecordReader {
 		try {
 			PreparedStatement prepareStatement = connection.prepareStatement(sql);
 			addParameterValuesToPreparedStatement(conditions, prepareStatement);
-			try {
-				ResultSet resultSet = prepareStatement.executeQuery();
-				try {
-					List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
-					return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
-				} finally {
-					resultSet.close();
-				}
-			} finally {
-				prepareStatement.close();
-			}
+			return getResultUsingQuery(prepareStatement);
 		} finally {
 			connection.close();
 		}
@@ -172,7 +168,7 @@ public final class RecordReaderImp implements RecordReader {
 	private void throwErrorIfNoRowIsReturned(String tableName, List<Map<String, String>> readRows) {
 		if (readRows.isEmpty()) {
 			throw SqlStorageException
-					.withMessage("Error reading data from " + tableName + ": no row returned");
+					.withMessage(ERROR_READING_DATA_FROM + tableName + ": no row returned");
 		}
 	}
 
@@ -180,7 +176,7 @@ public final class RecordReaderImp implements RecordReader {
 			List<Map<String, String>> readRows) {
 		if (resultHasMoreThanOneRow(readRows)) {
 			throw SqlStorageException.withMessage(
-					"Error reading data from " + tableName + ": more than one row returned");
+					ERROR_READING_DATA_FROM + tableName + ": more than one row returned");
 		}
 	}
 
