@@ -22,12 +22,15 @@ import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PreparedStatementSpy implements PreparedStatement {
 
 	public boolean executeQueryWasCalled = false;
 	public ResultSetSpy resultSet = new ResultSetSpy();
 	public boolean closeWasCalled = false;
+	public Map<String, String> usedSetStrings = new HashMap<>();
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
@@ -360,8 +363,7 @@ public class PreparedStatementSpy implements PreparedStatement {
 
 	@Override
 	public void setString(int parameterIndex, String x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		usedSetStrings.put(String.valueOf(parameterIndex), x);
 	}
 
 	@Override

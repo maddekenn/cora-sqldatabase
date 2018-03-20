@@ -20,7 +20,6 @@
 package se.uu.ub.cora.sqldatabase;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -39,20 +38,18 @@ import se.uu.ub.cora.connection.ResultSetSpy;
 public class RecordReaderImpTest {
 	private RecordReader recordReader;
 	private SqlConnectionProviderSpy sqlConnectionProviderSpy;
+	private Map<String, String> conditions;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		conditions = new HashMap<>();
+		conditions.put("alpha2code", "SE");
 		sqlConnectionProviderSpy = new SqlConnectionProviderSpy();
 		recordReader = RecordReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
 	}
 
 	@Test
-	public void testRecordReaderImpImplementsRecordReader() throws Exception {
-		assertNotNull(recordReader);
-	}
-
-	@Test
-	public void testReadNoResultsReturnsEmptyList() throws Exception {
+	public void testReadAllNoResultsReturnsEmptyList() throws Exception {
 		String tableName = "someTableName";
 		List<Map<String, String>> results = recordReader.readAllFromTable(tableName);
 		assertEquals(results, Collections.emptyList());
@@ -115,15 +112,7 @@ public class RecordReaderImpTest {
 	@Test
 	public void testIfResultSetContainsDataGetResultSetMetadataIsCalled() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
-		List<String> columnNames = createListOfColumnNames();
-		// List<String> columnNames = new ArrayList<>();
-		// columnNames.add("someColumnName");
-		resultSetSpy.columnNames = columnNames;
-
-		List<Map<String, String>> rowValues = new ArrayList<>();
-		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
-		rowValues.add(columnValues);
-		resultSetSpy.rowValues = rowValues;
+		setValuesInResultSetSpy(resultSetSpy);
 
 		resultSetSpy.hasNext = true;
 		recordReader.readAllFromTable("someTableName");
@@ -134,9 +123,7 @@ public class RecordReaderImpTest {
 	public void testIfResultSetContainsDataReturnedDataHasKeysFromResultSet() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		resultSetSpy.hasNext = true;
-		// List<String> columnNames = new ArrayList<>();
 		List<String> columnNames = createListOfColumnNames();
-		// columnNames.add("someColumnName");
 		resultSetSpy.columnNames = columnNames;
 
 		List<Map<String, String>> rowValues = new ArrayList<>();
@@ -190,9 +177,6 @@ public class RecordReaderImpTest {
 		List<String> columnNames = createListOfColumnNames();
 		resultSetSpy.columnNames = columnNames;
 
-		// Map<String, String> columnValues =
-		// createMapWithColumnNamesAndValues(columnNames, "");
-		// resultSetSpy.columnValues = columnValues;
 		List<Map<String, String>> rowValues = new ArrayList<>();
 
 		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
@@ -245,5 +229,209 @@ public class RecordReaderImpTest {
 		assertEquals(row0.get(columnNames.get(1)), "secondValue");
 		assertEquals(row0.get(columnNames.get(2)), "thirdValue");
 		assertEquals(row0.get(columnNames.get(3)), "someOther value four");
+
+		Map<String, String> row1 = readAllFromTable.get(1);
+		assertEquals(row1.keySet().size(), 4);
+		assertEquals(row1.get(columnNames.get(0)), "value12");
+		assertEquals(row1.get(columnNames.get(1)), "secondValue2");
+		assertEquals(row1.get(columnNames.get(2)), "thirdValue2");
+		assertEquals(row1.get(columnNames.get(3)), "someOther value four2");
+	}
+
+	@Test(expectedExceptions = SqlStorageException.class, expectedExceptionsMessageRegExp = ""
+			+ "Error reading data from someTableName: no row returned")
+	public void testReadOneNoResultsThrowsException() throws Exception {
+		String tableName = "someTableName";
+		recordReader.readOneRowFromDbUsingTableAndConditions(tableName, conditions);
+	}
+
+	@Test(expectedExceptions = SqlStorageException.class, expectedExceptionsMessageRegExp = ""
+			+ "Error reading data from someTableName")
+	public void testReadOneSqlErrorThrowsError() throws Exception {
+		sqlConnectionProviderSpy.returnErrorConnection = true;
+		recordReader = RecordReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+	}
+
+	@Test
+	public void testReadOneSqlErrorThrowsErrorAndSendsAlongOriginalError() throws Exception {
+		sqlConnectionProviderSpy.returnErrorConnection = true;
+		recordReader = RecordReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
+		try {
+			recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		} catch (Exception e) {
+			assertEquals(e.getCause().getMessage(), "error thrown from prepareStatement in spy");
+		}
+	}
+
+	@Test
+	public void testGeneratedSqlQueryForOneString() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		String generatedSql = sqlConnectionProviderSpy.connection.sql;
+		assertEquals(generatedSql, "select * from someTableName where alpha2code = ?");
+	}
+
+	@Test
+	public void testExecuteQueryForOneIsCalled() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		assertTrue(preparedStatementSpy.executeQueryWasCalled);
+	}
+
+	@Test
+	public void testExecuteQueryForOneIsCalledUsingValueFromConditions() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		assertEquals(preparedStatementSpy.usedSetStrings.get("1"), "SE");
+	}
+
+	@Test
+	public void testGeneratedSqlQueryForOneStringTwoConditions() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		conditions.put("alpha3code", "SWE");
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		String generatedSql = sqlConnectionProviderSpy.connection.sql;
+		assertEquals(generatedSql,
+				"select * from someTableName where alpha2code = ? and alpha3code = ?");
+	}
+
+	@Test
+	public void testExecuteQueryForOneIsCalledUsingValuesFromConditions() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		conditions.put("alpha3code", "SWE");
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		assertEquals(preparedStatementSpy.usedSetStrings.get("1"), "SE");
+		assertEquals(preparedStatementSpy.usedSetStrings.get("2"), "SWE");
+	}
+
+	@Test
+	public void testCloseOfConnectionIsCalledAfterReadOne() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		ConnectionSpy connectionSpy = sqlConnectionProviderSpy.connection;
+		assertTrue(connectionSpy.closeWasCalled);
+	}
+
+	@Test
+	public void testCloseOfPrepareStatementIsCalledAfterReadOne() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		assertTrue(preparedStatementSpy.closeWasCalled);
+	}
+
+	@Test
+	public void testCloseOfResultSetIsCalledAfterReadOne() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		assertTrue(resultSetSpy.closeWasCalled);
+	}
+
+	@Test
+	public void testIfResultSetContainsDataForOneGetResultSetMetadataIsCalled() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+
+		resultSetSpy.hasNext = true;
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		assertEquals(resultSetSpy.getMetadataWasCalled, true);
+	}
+
+	private void setValuesInResultSetSpy(ResultSetSpy resultSetSpy) {
+		List<String> columnNames = createListOfColumnNames();
+		resultSetSpy.columnNames = columnNames;
+
+		List<Map<String, String>> rowValues = createListOfRowValues(columnNames);
+		resultSetSpy.rowValues = rowValues;
+	}
+
+	private List<Map<String, String>> createListOfRowValues(List<String> columnNames) {
+		List<Map<String, String>> rowValues = new ArrayList<>();
+		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
+		rowValues.add(columnValues);
+		return rowValues;
+	}
+
+	@Test
+	public void testIfResultSetContainsDataForOneReturnedDataHasKeysFromResultSet()
+			throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		resultSetSpy.hasNext = true;
+		setValuesInResultSetSpy(resultSetSpy);
+
+		Map<String, String> readRow = recordReader
+				.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+
+		assertEquals(readRow.keySet().size(), 4);
+		assertTrue(readRow.containsKey("someColumnName"));
+	}
+
+	@Test
+	public void testIfResultSetContainsDataForOneContainsExpectedKeys() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		resultSetSpy.hasNext = true;
+		List<String> columnNames = createListOfColumnNames();
+		resultSetSpy.columnNames = columnNames;
+
+		List<Map<String, String>> rowValues = createListOfRowValues(columnNames);
+		resultSetSpy.rowValues = rowValues;
+
+		Map<String, String> readRow = recordReader
+				.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		assertEquals(readRow.keySet().size(), 4);
+		assertTrue(readRow.containsKey(columnNames.get(0)));
+		assertTrue(readRow.containsKey(columnNames.get(1)));
+		assertTrue(readRow.containsKey(columnNames.get(2)));
+		assertTrue(readRow.containsKey(columnNames.get(3)));
+	}
+
+	@Test
+	public void testIfResultSetContainsDataForOneContainsExptectedValues() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		resultSetSpy.hasNext = true;
+		List<String> columnNames = createListOfColumnNames();
+		resultSetSpy.columnNames = columnNames;
+
+		List<Map<String, String>> rowValues = createListOfRowValues(columnNames);
+		resultSetSpy.rowValues = rowValues;
+
+		Map<String, String> readRow = recordReader
+				.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		assertEquals(readRow.keySet().size(), 4);
+		assertEquals(readRow.get(columnNames.get(0)), "value1");
+		assertEquals(readRow.get(columnNames.get(1)), "secondValue");
+		assertEquals(readRow.get(columnNames.get(2)), "thirdValue");
+		assertEquals(readRow.get(columnNames.get(3)), "someOther value four");
+	}
+
+	@Test(expectedExceptions = SqlStorageException.class, expectedExceptionsMessageRegExp = ""
+			+ "Error reading data from someTableName: more than one row returned")
+	public void testIfResultSetContainsDataForOneMoreRowsDataReturnedDataContainsValuesFromResultSet()
+			throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		resultSetSpy.hasNext = true;
+		List<String> columnNames = createListOfColumnNames();
+		resultSetSpy.columnNames = columnNames;
+
+		List<Map<String, String>> rowValues = new ArrayList<>();
+		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
+		rowValues.add(columnValues);
+		Map<String, String> columnValues2 = createMapWithColumnNamesAndValues(columnNames, "2");
+		rowValues.add(columnValues2);
+		resultSetSpy.rowValues = rowValues;
+
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
 	}
 }

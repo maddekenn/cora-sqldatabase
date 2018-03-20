@@ -26,4 +26,7 @@ public interface RecordReader {
 
 	List<Map<String, String>> readAllFromTable(String tableName);
 
+	Map<String, String> readOneRowFromDbUsingTableAndConditions(String tableName,
+			Map<String, String> conditions);
+
 }

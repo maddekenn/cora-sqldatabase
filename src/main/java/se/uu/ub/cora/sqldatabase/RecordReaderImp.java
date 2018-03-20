@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import se.uu.ub.cora.connection.SqlConnectionProvider;
 
@@ -55,6 +56,10 @@ public final class RecordReaderImp implements RecordReader {
 
 	private List<Map<String, String>> tryToReadAllFromTable(String tableName) throws SQLException {
 		String sql = createSelectAllFor(tableName);
+		return readFromTableUsingSql(sql);
+	}
+
+	private List<Map<String, String>> readFromTableUsingSql(String sql) throws SQLException {
 		Connection connection = sqlConnectionProvider.getConnection();
 		try {
 			PreparedStatement prepareStatement = connection.prepareStatement(sql);
@@ -111,6 +116,96 @@ public final class RecordReaderImp implements RecordReader {
 
 	private String createSelectAllFor(String tableName) {
 		return "select * from " + tableName;
+	}
+
+	@Override
+	public Map<String, String> readOneRowFromDbUsingTableAndConditions(String tableName,
+			Map<String, String> conditions) {
+		try {
+			return tryToReadOneRowFromDbUsingTableAndConditions(tableName, conditions);
+		} catch (SQLException e) {
+			throw SqlStorageException
+					.withMessageAndException("Error reading data from " + tableName, e);
+		}
+	}
+
+	private Map<String, String> tryToReadOneRowFromDbUsingTableAndConditions(String tableName,
+			Map<String, String> conditions) throws SQLException {
+		String sql = createSqlForTableNameAndConditions(tableName, conditions);
+		List<Map<String, String>> readRows = readFromTableUsingSqlAndConditions(sql, conditions);
+		throwErrorIfNoRowIsReturned(tableName, readRows);
+		throwErrorIfMoreThanOneRowIsReturned(tableName, readRows);
+		return getSingleResultFromList(readRows);
+	}
+
+	private List<Map<String, String>> readFromTableUsingSqlAndConditions(String sql,
+			Map<String, String> conditions) throws SQLException {
+		Connection connection = sqlConnectionProvider.getConnection();
+		try {
+			PreparedStatement prepareStatement = connection.prepareStatement(sql);
+			addParameterValuesToPreparedStatement(conditions, prepareStatement);
+			try {
+				ResultSet resultSet = prepareStatement.executeQuery();
+				try {
+					List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
+					return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
+				} finally {
+					resultSet.close();
+				}
+			} finally {
+				prepareStatement.close();
+			}
+		} finally {
+			connection.close();
+		}
+	}
+
+	private void addParameterValuesToPreparedStatement(Map<String, String> conditions,
+			PreparedStatement prepareStatement) throws SQLException {
+		int position = 1;
+		for (String value : conditions.values()) {
+			prepareStatement.setString(position, value);
+			position++;
+		}
+	}
+
+	private void throwErrorIfNoRowIsReturned(String tableName, List<Map<String, String>> readRows) {
+		if (readRows.isEmpty()) {
+			throw SqlStorageException
+					.withMessage("Error reading data from " + tableName + ": no row returned");
+		}
+	}
+
+	private void throwErrorIfMoreThanOneRowIsReturned(String tableName,
+			List<Map<String, String>> readRows) {
+		if (resultHasMoreThanOneRow(readRows)) {
+			throw SqlStorageException.withMessage(
+					"Error reading data from " + tableName + ": more than one row returned");
+		}
+	}
+
+	private boolean resultHasMoreThanOneRow(List<Map<String, String>> readRows) {
+		return readRows.size() > 1;
+	}
+
+	private Map<String, String> getSingleResultFromList(List<Map<String, String>> readRows) {
+		return readRows.get(0);
+	}
+
+	private String createSqlForTableNameAndConditions(String tableName,
+			Map<String, String> conditions) {
+		String sql = "select * from " + tableName + " where ";
+		String conditionPart = createConditionPartOfSql(conditions);
+		sql += conditionPart;
+		return sql;
+	}
+
+	private String createConditionPartOfSql(Map<String, String> conditions) {
+		StringJoiner joiner = new StringJoiner(" and ");
+		for (String key : conditions.keySet()) {
+			joiner.add(key + " = ?");
+		}
+		return joiner.toString();
 	}
 
 }
