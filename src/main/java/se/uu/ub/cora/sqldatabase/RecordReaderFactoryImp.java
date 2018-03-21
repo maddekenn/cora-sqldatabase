@@ -34,4 +34,9 @@ public final class RecordReaderFactoryImp implements RecordReaderFactory {
 		return RecordReaderImp.usingSqlConnectionProvider(connectionProvider);
 	}
 
+	public SqlConnectionProvider getConnectionProvider() {
+		// needed for tests
+		return connectionProvider;
+	}
+
 }

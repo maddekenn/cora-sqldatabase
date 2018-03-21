@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.sqldatabase;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
@@ -26,7 +27,7 @@ import org.testng.annotations.Test;
 
 public class RecordReaderFactoryTest {
 	private SqlConnectionProviderSpy connectionProvider;
-	private RecordReaderFactory readerFactory;
+	private RecordReaderFactoryImp readerFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -36,6 +37,11 @@ public class RecordReaderFactoryTest {
 
 	@Test
 	public void testInit() throws Exception {
+		assertEquals(readerFactory.getConnectionProvider(), connectionProvider);
+	}
+
+	@Test
+	public void testFactor() throws Exception {
 		RecordReader recordReader = readerFactory.factor();
 		assertTrue(recordReader instanceof RecordReaderImp);
 	}
