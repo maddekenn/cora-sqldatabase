@@ -19,9 +19,33 @@
 package se.uu.ub.cora.connection;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 
-public interface SqlConnectionProvider {
+import se.uu.ub.cora.sqldatabase.SqlStorageException;
 
-	Connection getConnection();
+public final class ParameterConnectionProviderImp implements SqlConnectionProvider {
+	private String url;
+	private String user;
+	private String password;
+
+	public static ParameterConnectionProviderImp usingUriAndUserAndPassword(String url, String user,
+			String password) {
+		return new ParameterConnectionProviderImp(url, user, password);
+	}
+
+	private ParameterConnectionProviderImp(String url, String user, String password) {
+		this.url = url;
+		this.user = user;
+		this.password = password;
+	}
+
+	@Override
+	public Connection getConnection() {
+		try {
+			return DriverManager.getConnection(url, user, password);
+		} catch (Exception e) {
+			throw SqlStorageException.withMessage(e.getMessage());
+		}
+	}
 
 }
