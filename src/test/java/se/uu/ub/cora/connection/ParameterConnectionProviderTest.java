@@ -50,9 +50,6 @@ public class ParameterConnectionProviderTest {
 		assertEquals(driver.info.getProperty("password"), password);
 	}
 
-	// @Test(expectedExceptions = SqlStorageException.class,
-	// expectedExceptionsMessageRegExp = ""
-	// + "Error getting connection")
 	@Test
 	public void testError() throws Exception {
 		String url = "jdbc:NOTpostgresqlNOT://alvin-cora-docker-postgresql:5432/alvin";
