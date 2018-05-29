@@ -44,7 +44,7 @@ public final class ParameterConnectionProviderImp implements SqlConnectionProvid
 		try {
 			return DriverManager.getConnection(url, user, password);
 		} catch (Exception e) {
-			throw SqlStorageException.withMessage(e.getMessage());
+			throw SqlStorageException.withMessageAndException("Error getting connection", e);
 		}
 	}
 

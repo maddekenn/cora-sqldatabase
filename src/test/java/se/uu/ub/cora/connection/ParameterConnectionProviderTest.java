@@ -26,8 +26,6 @@ import java.sql.DriverManager;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.sqldatabase.SqlStorageException;
-
 public class ParameterConnectionProviderTest {
 
 	private DriverSpy driver;
@@ -52,15 +50,22 @@ public class ParameterConnectionProviderTest {
 		assertEquals(driver.info.getProperty("password"), password);
 	}
 
-	@Test(expectedExceptions = SqlStorageException.class, expectedExceptionsMessageRegExp = ""
-			+ "throwing error from DriverSpy")
+	// @Test(expectedExceptions = SqlStorageException.class,
+	// expectedExceptionsMessageRegExp = ""
+	// + "Error getting connection")
+	@Test
 	public void testError() throws Exception {
 		String url = "jdbc:NOTpostgresqlNOT://alvin-cora-docker-postgresql:5432/alvin";
 		String user = "INVALIDuserId";
 		String password = "somePassword";
 		ParameterConnectionProviderImp connectionProvider = ParameterConnectionProviderImp
 				.usingUriAndUserAndPassword(url, user, password);
-		connectionProvider.getConnection();
+		try {
+			connectionProvider.getConnection();
+		} catch (Exception e) {
+			assertEquals(e.getMessage(), "Error getting connection");
+			assertEquals(e.getCause().getMessage(), "throwing error from DriverSpy");
+		}
 
 	}
 }
