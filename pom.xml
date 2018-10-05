@@ -1,5 +1,6 @@
 <!--
   ~ Copyright 2017 Olov McKie
+  ~ Copyright 2018 Uppsala Universitet
   ~
   ~ This file is part of Cora.
   ~
@@ -23,11 +24,11 @@
 	<parent>
 		<groupId>se.uu.ub.cora</groupId>
 		<artifactId>cora-parent</artifactId>
-        <version>0.6-SNAPSHOT</version>
+        <version>0.7-SNAPSHOT</version>
 	</parent>
 	
 	<artifactId>sqldatabase</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>cora-sqldatabase</name>
@@ -39,25 +40,10 @@
 	</properties>
 
 	<scm>
-		<connection>scm:git:https://git.epc.ub.uu.se/epc/sqlstorage.git</connection>
-		<developerConnection>scm:git:https://git.epc.ub.uu.se/epc/sqlstorage.git</developerConnection>
-		<url>https://git.epc.ub.uu.se/epc/sqlstorage.git</url>
+		<connection>scm:git:https://github.com/lsu-ub-uu/sqlstorage.git</connection>
+		<developerConnection>scm:git:https://github.com/lsu-ub-uu/sqlstorage.git</developerConnection>
+		<url>https://github.com/lsu-ub-uu/sqlstorage.git</url>
 	</scm>
-
-	<repositories>
-		<repository>
-			<id>maven-public</id>
-			<name>LSU Nexus Repository</name>
-			<url>http://epc.ub.uu.se/nexus/repository/maven-public/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<updatePolicy>daily</updatePolicy>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
 
 
 	<dependencies>
