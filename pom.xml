@@ -15,20 +15,19 @@
   ~     GNU General Public License for more details.
   ~
   ~     You should have received a copy of the GNU General Public License
-  ~     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+  ~     along with Cora.  If not, see <http://www.gnu.org/licenses />.
   -->
-  <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
 	<parent>
 		<groupId>se.uu.ub.cora</groupId>
 		<artifactId>cora-parent</artifactId>
-        <version>0.7-SNAPSHOT</version>
+        <version>0.8.6</version>
 	</parent>
 	
 	<artifactId>sqldatabase</artifactId>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>cora-sqldatabase</name>
@@ -40,10 +39,11 @@
 	</properties>
 
 	<scm>
-		<connection>scm:git:https://github.com/lsu-ub-uu/sqlstorage.git</connection>
-		<developerConnection>scm:git:https://github.com/lsu-ub-uu/sqlstorage.git</developerConnection>
-		<url>https://github.com/lsu-ub-uu/sqlstorage.git</url>
-	</scm>
+		<connection>scm:git:https://github.com/lsu-ub-uu/cora-sqldatabase.git</connection>
+		<developerConnection>scm:git:https://github.com/lsu-ub-uu/cora-sqldatabase.git</developerConnection>
+		<url>https://github.com/lsu-ub-uu/cora-sqldatabase.git</url>
+	  <tag>HEAD</tag>
+  </scm>
 
 
 	<dependencies>
