@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -434,4 +434,153 @@ public class RecordReaderImpTest {
 
 		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
 	}
+
+	@Test
+	public void testReadFromTableUsingConditionNoResultsReturnsEmptyList() throws Exception {
+		String tableName = "someTableName";
+		List<Map<String, String>> results = recordReader.readFromTableUsingConditions(tableName,
+				conditions);
+		assertEquals(results, Collections.emptyList());
+	}
+
+	@Test(expectedExceptions = SqlStorageException.class, expectedExceptionsMessageRegExp = ""
+			+ "Error reading data from someTableName")
+	public void testReadFromTableUsingConditionSqlErrorThrowsError() throws Exception {
+		sqlConnectionProviderSpy.returnErrorConnection = true;
+		recordReader = RecordReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+	}
+
+	@Test
+	public void testReadFromTableUsingConditionSqlErrorThrowsErrorAndSendsAlongOriginalError()
+			throws Exception {
+		sqlConnectionProviderSpy.returnErrorConnection = true;
+		recordReader = RecordReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
+		try {
+			recordReader.readFromTableUsingConditions("someTableName", conditions);
+		} catch (Exception e) {
+			assertEquals(e.getCause().getMessage(), "error thrown from prepareStatement in spy");
+		}
+	}
+
+	@Test
+	public void testGeneratedSqlQueryStringForReadFromTableUsingCondition() throws Exception {
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+		String generatedSql = sqlConnectionProviderSpy.connection.sql;
+		assertEquals(generatedSql, "select * from someTableName where alpha2code = ?");
+	}
+
+	@Test
+	public void testExecuteQueryIsCalledForReadFromTableUsingCondition() throws Exception {
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		assertTrue(preparedStatementSpy.executeQueryWasCalled);
+	}
+
+	@Test
+	public void testCloseOfConnectionIsCalledForReadFromTableUsingCondition() throws Exception {
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+		ConnectionSpy connectionSpy = sqlConnectionProviderSpy.connection;
+		assertTrue(connectionSpy.closeWasCalled);
+	}
+
+	@Test
+	public void testCloseOfPrepareStatementIsCalledForReadFromTableUsingCondition()
+			throws Exception {
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		assertTrue(preparedStatementSpy.closeWasCalled);
+	}
+
+	@Test
+	public void testCloseOfResultSetIsCalledForReadFromTableUsingCondition() throws Exception {
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		assertTrue(resultSetSpy.closeWasCalled);
+	}
+
+	@Test
+	public void testIfSetMetadataIsCalledForReadFromTableUsingCondition() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+
+		resultSetSpy.hasNext = true;
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+		assertEquals(resultSetSpy.getMetadataWasCalled, true);
+	}
+
+	@Test
+	public void testIfResultSetContainsDataReturnedDataHasKeysFromResultSetForReadFromTableUsingCondition()
+			throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		resultSetSpy.hasNext = true;
+		List<String> columnNames = createListOfColumnNames();
+		resultSetSpy.columnNames = columnNames;
+
+		List<Map<String, String>> rowValues = new ArrayList<>();
+		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
+		rowValues.add(columnValues);
+		resultSetSpy.rowValues = rowValues;
+
+		List<Map<String, String>> readAllFromTable = recordReader
+				.readFromTableUsingConditions("someTableName", conditions);
+		Map<String, String> row0 = readAllFromTable.get(0);
+
+		assertEquals(row0.keySet().size(), 4);
+		assertTrue(row0.containsKey("someColumnName"));
+		assertTrue(row0.containsKey(columnNames.get(0)));
+		assertTrue(row0.containsKey(columnNames.get(1)));
+		assertTrue(row0.containsKey(columnNames.get(2)));
+		assertTrue(row0.containsKey(columnNames.get(3)));
+	}
+
+	@Test
+	public void testIfResultSetContainsDataReturnedDataContainsValuesFromResultSetForReadFromTableUsingCondition()
+			throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		resultSetSpy.hasNext = true;
+		List<String> columnNames = createListOfColumnNames();
+		resultSetSpy.columnNames = columnNames;
+
+		List<Map<String, String>> rowValues = new ArrayList<>();
+
+		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
+		rowValues.add(columnValues);
+
+		resultSetSpy.rowValues = rowValues;
+
+		List<Map<String, String>> readAllFromTable = recordReader
+				.readFromTableUsingConditions("someTableName", conditions);
+		Map<String, String> row0 = readAllFromTable.get(0);
+
+		assertEquals(readAllFromTable.size(), 1);
+		assertEquals(row0.keySet().size(), 4);
+		assertEquals(row0.get(columnNames.get(0)), "value1");
+		assertEquals(row0.get(columnNames.get(1)), "secondValue");
+		assertEquals(row0.get(columnNames.get(2)), "thirdValue");
+		assertEquals(row0.get(columnNames.get(3)), "someOther value four");
+	}
+
+	@Test
+	public void testGeneratedSqlwoConditionsForReadFromTableUsingCondition() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		conditions.put("alpha3code", "SWE");
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+		String generatedSql = sqlConnectionProviderSpy.connection.sql;
+		assertEquals(generatedSql,
+				"select * from someTableName where alpha2code = ? and alpha3code = ?");
+	}
+
+	@Test
+	public void testEUsingValuesFromConditionsForReadFromTableUsingCondition() throws Exception {
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+		conditions.put("alpha3code", "SWE");
+		recordReader.readFromTableUsingConditions("someTableName", conditions);
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		assertEquals(preparedStatementSpy.usedSetStrings.get("1"), "SE");
+		assertEquals(preparedStatementSpy.usedSetStrings.get("2"), "SWE");
+	}
+
 }

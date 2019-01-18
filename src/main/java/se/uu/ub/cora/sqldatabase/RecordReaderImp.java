@@ -204,4 +204,16 @@ public final class RecordReaderImp implements RecordReader {
 		return joiner.toString();
 	}
 
+	@Override
+	public List<Map<String, String>> readFromTableUsingConditions(String tableName,
+			Map<String, String> conditions) {
+		try {
+			String sqlString = createSqlForTableNameAndConditions(tableName, conditions);
+			return readFromTableUsingSqlAndConditions(sqlString, conditions);
+		} catch (SQLException e) {
+			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
+					e);
+		}
+	}
+
 }
