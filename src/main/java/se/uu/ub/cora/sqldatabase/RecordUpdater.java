@@ -4,6 +4,6 @@ import java.util.Map;
 
 public interface RecordUpdater {
 
-	void update(String tableName, Map<String, String> values, Map<String, String> conditions);
+	void update(String tableName, Map<String, Object> values, Map<String, Object> conditions);
 
 }

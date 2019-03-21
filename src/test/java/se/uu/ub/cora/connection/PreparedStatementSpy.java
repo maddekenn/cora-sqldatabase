@@ -28,9 +28,11 @@ import java.util.Map;
 public class PreparedStatementSpy implements PreparedStatement {
 
 	public boolean executeQueryWasCalled = false;
+	public boolean executeUpdateWasCalled = false;
 	public ResultSetSpy resultSet = new ResultSetSpy();
 	public boolean closeWasCalled = false;
 	public Map<String, String> usedSetStrings = new HashMap<>();
+	public Map<String, Integer> usedSetIntegers = new HashMap<>();
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
@@ -303,7 +305,7 @@ public class PreparedStatementSpy implements PreparedStatement {
 
 	@Override
 	public int executeUpdate() throws SQLException {
-		// TODO Auto-generated method stub
+		executeUpdateWasCalled = true;
 		return 0;
 	}
 
@@ -333,8 +335,7 @@ public class PreparedStatementSpy implements PreparedStatement {
 
 	@Override
 	public void setInt(int parameterIndex, int x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		usedSetIntegers.put(String.valueOf(parameterIndex), x);
 	}
 
 	@Override
