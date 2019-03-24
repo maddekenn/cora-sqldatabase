@@ -38,7 +38,7 @@ import se.uu.ub.cora.connection.ResultSetSpy;
 public class RecordReaderImpTest {
 	private RecordReader recordReader;
 	private SqlConnectionProviderSpy sqlConnectionProviderSpy;
-	private Map<String, String> conditions;
+	private Map<String, Object> conditions;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -289,6 +289,19 @@ public class RecordReaderImpTest {
 		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
 		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
 		assertEquals(preparedStatementSpy.usedSetStrings.get("1"), "SE");
+	}
+
+	@Test
+	public void testExecuteQueryForOneIsCalledUsingValueFromConditionsWhenConditiontIsInteger()
+			throws Exception {
+		conditions = new HashMap<>();
+		conditions.put("id", 567);
+		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
+		setValuesInResultSetSpy(resultSetSpy);
+
+		recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		assertEquals(preparedStatementSpy.usedSetIntegers.get("1"), Integer.valueOf(567));
 	}
 
 	@Test

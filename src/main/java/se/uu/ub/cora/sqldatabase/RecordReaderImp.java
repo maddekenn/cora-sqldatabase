@@ -126,7 +126,7 @@ public final class RecordReaderImp implements RecordReader {
 
 	@Override
 	public Map<String, String> readOneRowFromDbUsingTableAndConditions(String tableName,
-			Map<String, String> conditions) {
+			Map<String, Object> conditions) {
 		try {
 			return tryToReadOneRowFromDbUsingTableAndConditions(tableName, conditions);
 		} catch (SQLException e) {
@@ -136,7 +136,7 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private Map<String, String> tryToReadOneRowFromDbUsingTableAndConditions(String tableName,
-			Map<String, String> conditions) throws SQLException {
+			Map<String, Object> conditions) throws SQLException {
 		String sql = createSqlForTableNameAndConditions(tableName, conditions);
 		List<Map<String, String>> readRows = readFromTableUsingSqlAndConditions(sql, conditions);
 		throwErrorIfNoRowIsReturned(tableName, readRows);
@@ -145,7 +145,7 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private List<Map<String, String>> readFromTableUsingSqlAndConditions(String sql,
-			Map<String, String> conditions) throws SQLException {
+			Map<String, Object> conditions) throws SQLException {
 		Connection connection = sqlConnectionProvider.getConnection();
 		try {
 			PreparedStatement prepareStatement = connection.prepareStatement(sql);
@@ -156,12 +156,21 @@ public final class RecordReaderImp implements RecordReader {
 		}
 	}
 
-	private void addParameterValuesToPreparedStatement(Map<String, String> conditions,
+	private void addParameterValuesToPreparedStatement(Map<String, Object> conditions,
 			PreparedStatement prepareStatement) throws SQLException {
 		int position = 1;
-		for (String value : conditions.values()) {
-			prepareStatement.setString(position, value);
+		for (Object value : conditions.values()) {
+			categorizeAndSetValues(prepareStatement, position, value);
 			position++;
+		}
+	}
+
+	private void categorizeAndSetValues(PreparedStatement prepareStatement, int position,
+			Object value) throws SQLException {
+		if (value instanceof Integer) {
+			prepareStatement.setInt(position, (Integer) value);
+		} else {
+			prepareStatement.setString(position, (String) value);
 		}
 	}
 
@@ -189,14 +198,14 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private String createSqlForTableNameAndConditions(String tableName,
-			Map<String, String> conditions) {
+			Map<String, Object> conditions) {
 		String sql = "select * from " + tableName + " where ";
 		String conditionPart = createConditionPartOfSql(conditions);
 		sql += conditionPart;
 		return sql;
 	}
 
-	private String createConditionPartOfSql(Map<String, String> conditions) {
+	private String createConditionPartOfSql(Map<String, Object> conditions) {
 		StringJoiner joiner = new StringJoiner(" and ");
 		for (String key : conditions.keySet()) {
 			joiner.add(key + " = ?");
@@ -206,7 +215,7 @@ public final class RecordReaderImp implements RecordReader {
 
 	@Override
 	public List<Map<String, String>> readFromTableUsingConditions(String tableName,
-			Map<String, String> conditions) {
+			Map<String, Object> conditions) {
 		try {
 			String sqlString = createSqlForTableNameAndConditions(tableName, conditions);
 			return readFromTableUsingSqlAndConditions(sqlString, conditions);
