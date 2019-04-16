@@ -24,10 +24,8 @@ import java.util.Map;
 
 public interface DataReader {
 
-	List<Map<String, String>> readAllFromTable(String tableName);
-
-	List<Map<String, String>> readFromTableUsingConditions(String tableName,
-			Map<String, String> conditions);
+	List<Map<String, Object>> executePreparedStatementQueryUsingSqlAndValues(String sql,
+			List<Object> values);
 
 	Map<String, String> readOneRowFromDbUsingTableAndConditions(String tableName,
 			Map<String, String> conditions);

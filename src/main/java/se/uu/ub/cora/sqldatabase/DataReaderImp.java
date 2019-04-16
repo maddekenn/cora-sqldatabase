@@ -45,46 +45,6 @@ public final class DataReaderImp implements DataReader {
 		return new DataReaderImp(sqlConnectionProvider);
 	}
 
-	@Override
-	public List<Map<String, String>> readAllFromTable(String tableName) {
-		try {
-			return tryToReadAllFromTable(tableName);
-		} catch (SQLException e) {
-			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
-					e);
-		}
-	}
-
-	private List<Map<String, String>> tryToReadAllFromTable(String tableName) throws SQLException {
-		String sql = createSelectAllFor(tableName);
-		return readFromTableUsingSql(sql);
-	}
-
-	private List<Map<String, String>> readFromTableUsingSql(String sql) throws SQLException {
-		Connection connection = sqlConnectionProvider.getConnection();
-		try {
-			PreparedStatement prepareStatement = connection.prepareStatement(sql);
-			return getResultUsingQuery(prepareStatement);
-		} finally {
-			connection.close();
-		}
-	}
-
-	private List<Map<String, String>> getResultUsingQuery(PreparedStatement prepareStatement)
-			throws SQLException {
-		try {
-			ResultSet resultSet = prepareStatement.executeQuery();
-			try {
-				List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
-				return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
-			} finally {
-				resultSet.close();
-			}
-		} finally {
-			prepareStatement.close();
-		}
-	}
-
 	private HashMap<String, String> createMapForCurrentRowInResultSet(ResultSet resultSet,
 			List<String> columnNames) throws SQLException {
 		HashMap<String, String> row = new HashMap<>();
@@ -92,36 +52,6 @@ public final class DataReaderImp implements DataReader {
 			row.put(columnName, resultSet.getString(columnName));
 		}
 		return row;
-	}
-
-	private List<Map<String, String>> createListOfMapsFromResultSetUsingColumnNames(
-			ResultSet resultSet, List<String> columnNames) throws SQLException {
-		List<Map<String, String>> all = new ArrayList<>();
-		while (resultSet.next()) {
-			HashMap<String, String> row = createMapForCurrentRowInResultSet(resultSet, columnNames);
-			all.add(row);
-		}
-		return all;
-	}
-
-	private List<String> createListOfColumnNamesFromResultSet(ResultSet resultSet)
-			throws SQLException {
-		ResultSetMetaData metaData = resultSet.getMetaData();
-		int columnCount = metaData.getColumnCount();
-		return createListOfColumnNamesFromMetadata(metaData, columnCount);
-	}
-
-	private List<String> createListOfColumnNamesFromMetadata(ResultSetMetaData metaData,
-			int columnCount) throws SQLException {
-		List<String> columnNames = new ArrayList<>();
-		for (int i = 1; i <= columnCount; i++) {
-			columnNames.add(metaData.getColumnName(i));
-		}
-		return columnNames;
-	}
-
-	private String createSelectAllFor(String tableName) {
-		return "select * from " + tableName;
 	}
 
 	@Override
@@ -154,6 +84,31 @@ public final class DataReaderImp implements DataReader {
 		} finally {
 			connection.close();
 		}
+	}
+
+	private List<Map<String, String>> getResultUsingQuery(PreparedStatement prepareStatement)
+			throws SQLException {
+		try {
+			ResultSet resultSet = prepareStatement.executeQuery();
+			try {
+				List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
+				return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
+			} finally {
+				resultSet.close();
+			}
+		} finally {
+			prepareStatement.close();
+		}
+	}
+
+	private List<Map<String, String>> createListOfMapsFromResultSetUsingColumnNames(
+			ResultSet resultSet, List<String> columnNames) throws SQLException {
+		List<Map<String, String>> all = new ArrayList<>();
+		while (resultSet.next()) {
+			HashMap<String, String> row = createMapForCurrentRowInResultSet(resultSet, columnNames);
+			all.add(row);
+		}
+		return all;
 	}
 
 	private void addParameterValuesToPreparedStatement(Map<String, String> conditions,
@@ -205,16 +160,105 @@ public final class DataReaderImp implements DataReader {
 	}
 
 	@Override
-	public List<Map<String, String>> readFromTableUsingConditions(String tableName,
-			Map<String, String> conditions) {
+	public List<Map<String, Object>> executePreparedStatementQueryUsingSqlAndValues(String sql,
+			List<Object> values) {
 		try {
-			String sqlString = createSqlForTableNameAndConditions(tableName, conditions);
-			return readFromTableUsingSqlAndConditions(sqlString, conditions);
+			return readUsingSqlAndValues(sql, values);
 		} catch (SQLException e) {
-			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
-					e);
+			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + sql, e);
 		}
 	}
+
+	private List<Map<String, Object>> readUsingSqlAndValues(String sql, List<Object> values)
+			throws SQLException {
+		Connection connection = sqlConnectionProvider.getConnection();
+		try {
+			PreparedStatement prepareStatement = connection.prepareStatement(sql);
+			addParameterValuesToPreparedStatement(values, prepareStatement);
+			return getResultUsingQuery2(prepareStatement);
+		} finally {
+			connection.close();
+		}
+	}
+
+	private void addParameterValuesToPreparedStatement(List<Object> values,
+			PreparedStatement prepareStatement) throws SQLException {
+		int position = 1;
+		for (Object value : values) {
+			prepareStatement.setObject(position, value);
+			position++;
+		}
+	}
+
+	private List<Map<String, Object>> getResultUsingQuery2(PreparedStatement prepareStatement)
+			throws SQLException {
+		try {
+			ResultSet resultSet = prepareStatement.executeQuery();
+			try {
+				List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
+				return createListOfMapsFromResultSetUsingColumnNames2(resultSet, columnNames);
+			} finally {
+				resultSet.close();
+			}
+		} finally {
+			prepareStatement.close();
+		}
+	}
+
+	private List<String> createListOfColumnNamesFromResultSet(ResultSet resultSet)
+			throws SQLException {
+		ResultSetMetaData metaData = resultSet.getMetaData();
+		int columnCount = metaData.getColumnCount();
+		return createListOfColumnNamesFromMetadata(metaData, columnCount);
+	}
+
+	private List<String> createListOfColumnNamesFromMetadata(ResultSetMetaData metaData,
+			int columnCount) throws SQLException {
+		List<String> columnNames = new ArrayList<>();
+		for (int i = 1; i <= columnCount; i++) {
+			columnNames.add(metaData.getColumnName(i));
+		}
+		return columnNames;
+	}
+
+	private List<Map<String, Object>> createListOfMapsFromResultSetUsingColumnNames2(
+			ResultSet resultSet, List<String> columnNames) throws SQLException {
+		List<Map<String, Object>> all = new ArrayList<>();
+		while (resultSet.next()) {
+			HashMap<String, Object> row = createMapForCurrentRowInResultSet2(resultSet,
+					columnNames);
+			all.add(row);
+		}
+		return all;
+	}
+
+	private HashMap<String, Object> createMapForCurrentRowInResultSet2(ResultSet resultSet,
+			List<String> columnNames) throws SQLException {
+		HashMap<String, Object> row = new HashMap<>();
+		for (String columnName : columnNames) {
+			row.put(columnName, resultSet.getString(columnName));
+		}
+		return row;
+	}
+
+	// select * from organisation o left join organisation_name orgname on
+	// o.organisationId = orgname.id where ;
+	// o.organisationId = ? and orgname.locale = ?;
+
+	/*
+	 * update organisation set name=? where name = ?;
+	 */
+	// @Override
+	// public List<Map<String, String>> executePreparedStatementUsingSqlAndConditions(String sql,
+	// List<Objects> values) {
+	// // try {
+	// // String sqlString = createSqlForTableNameAndConditions(tableName, values);
+	// // return readFromTableUsingSqlAndConditions(sqlString, values);
+	// return null;
+	// // } catch (SQLException e) {
+	// // throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + sql, e);
+	// // }
+	// }
 
 	// @Override
 	// public Map<String, Object> readOneRowFromDbUsingSqlAndConditions(String tableName,

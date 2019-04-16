@@ -31,6 +31,7 @@ public class PreparedStatementSpy implements PreparedStatement {
 	public ResultSetSpy resultSet = new ResultSetSpy();
 	public boolean closeWasCalled = false;
 	public Map<String, String> usedSetStrings = new HashMap<>();
+	public Map<String, Object> usedSetObjects = new HashMap<>();
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
@@ -424,7 +425,7 @@ public class PreparedStatementSpy implements PreparedStatement {
 	@Override
 	public void setObject(int parameterIndex, Object x) throws SQLException {
 		// TODO Auto-generated method stub
-
+		usedSetObjects.put(String.valueOf(parameterIndex), x);
 	}
 
 	@Override
