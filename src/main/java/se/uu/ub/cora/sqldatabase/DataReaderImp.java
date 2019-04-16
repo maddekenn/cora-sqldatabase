@@ -171,13 +171,12 @@ public final class DataReaderImp implements DataReader {
 
 	private List<Map<String, Object>> readUsingSqlAndValues(String sql, List<Object> values)
 			throws SQLException {
-		Connection connection = sqlConnectionProvider.getConnection();
-		try {
-			PreparedStatement prepareStatement = connection.prepareStatement(sql);
+
+		try (Connection connection = sqlConnectionProvider.getConnection();
+				PreparedStatement prepareStatement = connection.prepareStatement(sql);) {
+
 			addParameterValuesToPreparedStatement(values, prepareStatement);
 			return getResultUsingQuery2(prepareStatement);
-		} finally {
-			connection.close();
 		}
 	}
 
@@ -192,16 +191,9 @@ public final class DataReaderImp implements DataReader {
 
 	private List<Map<String, Object>> getResultUsingQuery2(PreparedStatement prepareStatement)
 			throws SQLException {
-		try {
-			ResultSet resultSet = prepareStatement.executeQuery();
-			try {
-				List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
-				return createListOfMapsFromResultSetUsingColumnNames2(resultSet, columnNames);
-			} finally {
-				resultSet.close();
-			}
-		} finally {
-			prepareStatement.close();
+		try (ResultSet resultSet = prepareStatement.executeQuery();) {
+			List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
+			return createListOfMapsFromResultSetUsingColumnNames2(resultSet, columnNames);
 		}
 	}
 
@@ -248,26 +240,4 @@ public final class DataReaderImp implements DataReader {
 	/*
 	 * update organisation set name=? where name = ?;
 	 */
-	// @Override
-	// public List<Map<String, String>> executePreparedStatementUsingSqlAndConditions(String sql,
-	// List<Objects> values) {
-	// // try {
-	// // String sqlString = createSqlForTableNameAndConditions(tableName, values);
-	// // return readFromTableUsingSqlAndConditions(sqlString, values);
-	// return null;
-	// // } catch (SQLException e) {
-	// // throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + sql, e);
-	// // }
-	// }
-
-	// @Override
-	// public Map<String, Object> readOneRowFromDbUsingSqlAndConditions(String tableName,
-	// Map<String, String> conditions) {
-	// try {
-	// return tryToReadOneRowFromDbUsingTableAndConditions(tableName, conditions);
-	// } catch (SQLException e) {
-	// throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
-	// e);
-	// }
-	// }
 }
