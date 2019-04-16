@@ -38,13 +38,10 @@ import se.uu.ub.cora.connection.ResultSetSpy;
 public class DataReaderImpTest {
 	private DataReader dataReader;
 	private SqlConnectionProviderSpy sqlConnectionProviderSpy;
-	private Map<String, String> conditions;
 	private List<Object> values;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		conditions = new HashMap<>();
-		conditions.put("alpha2code", "SE");
 		sqlConnectionProviderSpy = new SqlConnectionProviderSpy();
 		dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
 		values = new ArrayList<>();
@@ -65,33 +62,32 @@ public class DataReaderImpTest {
 			+ "Error reading data from someTableName: no row returned")
 	public void testReadOneNoResultsThrowsException() throws Exception {
 		String tableName = "someTableName";
-		dataReader.readOneRowFromDbUsingTableAndConditions(tableName, conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues(tableName, values);
 	}
 
 	@Test(expectedExceptions = SqlStorageException.class, expectedExceptionsMessageRegExp = ""
 			+ "Error reading data from someTableName")
 	public void testReadOneSqlErrorThrowsError() throws Exception {
 		sqlConnectionProviderSpy.returnErrorConnection = true;
-		dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 	}
 
 	@Test
 	public void testReadOneSqlErrorThrowsErrorAndSendsAlongOriginalError() throws Exception {
 		sqlConnectionProviderSpy.returnErrorConnection = true;
-		dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
 		try {
-			dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+			dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 		} catch (Exception e) {
 			assertEquals(e.getCause().getMessage(), "error thrown from prepareStatement in spy");
 		}
 	}
 
 	@Test
-	public void testGeneratedSqlQueryForOneString() throws Exception {
+	public void testSqlPassedOnToConnectionForOneString() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		setValuesInResultSetSpy(resultSetSpy);
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues(
+				"select * from someTableName where alpha2code = ?", values);
 		String generatedSql = sqlConnectionProviderSpy.connection.sql;
 		assertEquals(generatedSql, "select * from someTableName where alpha2code = ?");
 	}
@@ -100,7 +96,7 @@ public class DataReaderImpTest {
 	public void testExecuteQueryForOneIsCalled() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		setValuesInResultSetSpy(resultSetSpy);
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
 		assertTrue(preparedStatementSpy.executeQueryWasCalled);
 	}
@@ -109,38 +105,29 @@ public class DataReaderImpTest {
 	public void testExecuteQueryForOneIsCalledUsingValueFromConditions() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		setValuesInResultSetSpy(resultSetSpy);
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		values.add("SE");
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
-		assertEquals(preparedStatementSpy.usedSetStrings.get("1"), "SE");
-	}
-
-	@Test
-	public void testGeneratedSqlQueryForOneStringTwoConditions() throws Exception {
-		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
-		setValuesInResultSetSpy(resultSetSpy);
-		conditions.put("alpha3code", "SWE");
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
-		String generatedSql = sqlConnectionProviderSpy.connection.sql;
-		assertEquals(generatedSql,
-				"select * from someTableName where alpha2code = ? and alpha3code = ?");
+		assertEquals(preparedStatementSpy.usedSetObjects.get("1"), "SE");
 	}
 
 	@Test
 	public void testExecuteQueryForOneIsCalledUsingValuesFromConditions() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		setValuesInResultSetSpy(resultSetSpy);
-		conditions.put("alpha3code", "SWE");
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		values.add("SE");
+		values.add("SWE");
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
-		assertEquals(preparedStatementSpy.usedSetStrings.get("1"), "SE");
-		assertEquals(preparedStatementSpy.usedSetStrings.get("2"), "SWE");
+		assertEquals(preparedStatementSpy.usedSetObjects.get("1"), "SE");
+		assertEquals(preparedStatementSpy.usedSetObjects.get("2"), "SWE");
 	}
 
 	@Test
 	public void testCloseOfConnectionIsCalledAfterReadOne() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		setValuesInResultSetSpy(resultSetSpy);
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 		ConnectionSpy connectionSpy = sqlConnectionProviderSpy.connection;
 		assertTrue(connectionSpy.closeWasCalled);
 	}
@@ -149,7 +136,7 @@ public class DataReaderImpTest {
 	public void testCloseOfPrepareStatementIsCalledAfterReadOne() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		setValuesInResultSetSpy(resultSetSpy);
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
 		assertTrue(preparedStatementSpy.closeWasCalled);
 	}
@@ -158,7 +145,7 @@ public class DataReaderImpTest {
 	public void testCloseOfResultSetIsCalledAfterReadOne() throws Exception {
 		ResultSetSpy resultSetSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy.resultSet;
 		setValuesInResultSetSpy(resultSetSpy);
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 		assertTrue(resultSetSpy.closeWasCalled);
 	}
 
@@ -168,7 +155,7 @@ public class DataReaderImpTest {
 		setValuesInResultSetSpy(resultSetSpy);
 
 		resultSetSpy.hasNext = true;
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 		assertEquals(resultSetSpy.getMetadataWasCalled, true);
 	}
 
@@ -203,8 +190,8 @@ public class DataReaderImpTest {
 		resultSetSpy.hasNext = true;
 		setValuesInResultSetSpy(resultSetSpy);
 
-		Map<String, String> readRow = dataReader
-				.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		Map<String, Object> readRow = dataReader.readOneRowOrFailUsingSqlAndValues("someTableName",
+				values);
 
 		assertEquals(readRow.keySet().size(), 4);
 		assertTrue(readRow.containsKey("someColumnName"));
@@ -220,8 +207,8 @@ public class DataReaderImpTest {
 		List<Map<String, String>> rowValues = createListOfRowValues(columnNames);
 		resultSetSpy.rowValues = rowValues;
 
-		Map<String, String> readRow = dataReader
-				.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		Map<String, Object> readRow = dataReader.readOneRowOrFailUsingSqlAndValues("someTableName",
+				values);
 		assertEquals(readRow.keySet().size(), 4);
 		assertTrue(readRow.containsKey(columnNames.get(0)));
 		assertTrue(readRow.containsKey(columnNames.get(1)));
@@ -239,8 +226,8 @@ public class DataReaderImpTest {
 		List<Map<String, String>> rowValues = createListOfRowValues(columnNames);
 		resultSetSpy.rowValues = rowValues;
 
-		Map<String, String> readRow = dataReader
-				.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		Map<String, Object> readRow = dataReader.readOneRowOrFailUsingSqlAndValues("someTableName",
+				values);
 		assertEquals(readRow.keySet().size(), 4);
 		assertEquals(readRow.get(columnNames.get(0)), "value1");
 		assertEquals(readRow.get(columnNames.get(1)), "secondValue");
@@ -264,7 +251,7 @@ public class DataReaderImpTest {
 		rowValues.add(columnValues2);
 		resultSetSpy.rowValues = rowValues;
 
-		dataReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
+		dataReader.readOneRowOrFailUsingSqlAndValues("someTableName", values);
 	}
 
 	@Test
@@ -279,7 +266,6 @@ public class DataReaderImpTest {
 			+ "Error reading data from someTableName")
 	public void testReadFromTableUsingConditionSqlErrorThrowsError() throws Exception {
 		sqlConnectionProviderSpy.returnErrorConnection = true;
-		dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
 		dataReader.executePreparedStatementQueryUsingSqlAndValues("someTableName", values);
 	}
 
@@ -287,7 +273,6 @@ public class DataReaderImpTest {
 	public void testReadFromTableUsingConditionSqlErrorThrowsErrorAndSendsAlongOriginalError()
 			throws Exception {
 		sqlConnectionProviderSpy.returnErrorConnection = true;
-		dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
 		try {
 			dataReader.executePreparedStatementQueryUsingSqlAndValues("someTableName", values);
 		} catch (Exception e) {

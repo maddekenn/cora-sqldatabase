@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
 import se.uu.ub.cora.connection.SqlConnectionProvider;
 
@@ -45,82 +44,16 @@ public final class DataReaderImp implements DataReader {
 		return new DataReaderImp(sqlConnectionProvider);
 	}
 
-	private HashMap<String, String> createMapForCurrentRowInResultSet(ResultSet resultSet,
-			List<String> columnNames) throws SQLException {
-		HashMap<String, String> row = new HashMap<>();
-		for (String columnName : columnNames) {
-			row.put(columnName, resultSet.getString(columnName));
-		}
-		return row;
-	}
-
 	@Override
-	public Map<String, String> readOneRowFromDbUsingTableAndConditions(String tableName,
-			Map<String, String> conditions) {
-		try {
-			return tryToReadOneRowFromDbUsingTableAndConditions(tableName, conditions);
-		} catch (SQLException e) {
-			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
-					e);
-		}
-	}
-
-	private Map<String, String> tryToReadOneRowFromDbUsingTableAndConditions(String tableName,
-			Map<String, String> conditions) throws SQLException {
-		String sql = createSqlForTableNameAndConditions(tableName, conditions);
-		List<Map<String, String>> readRows = readFromTableUsingSqlAndConditions(sql, conditions);
-		throwErrorIfNoRowIsReturned(tableName, readRows);
-		throwErrorIfMoreThanOneRowIsReturned(tableName, readRows);
+	public Map<String, Object> readOneRowOrFailUsingSqlAndValues(String sql, List<Object> values) {
+		List<Map<String, Object>> readRows = executePreparedStatementQueryUsingSqlAndValues(sql,
+				values);
+		throwErrorIfNoRowIsReturned(sql, readRows);
+		throwErrorIfMoreThanOneRowIsReturned(sql, readRows);
 		return getSingleResultFromList(readRows);
 	}
 
-	private List<Map<String, String>> readFromTableUsingSqlAndConditions(String sql,
-			Map<String, String> conditions) throws SQLException {
-		Connection connection = sqlConnectionProvider.getConnection();
-		try {
-			PreparedStatement prepareStatement = connection.prepareStatement(sql);
-			addParameterValuesToPreparedStatement(conditions, prepareStatement);
-			return getResultUsingQuery(prepareStatement);
-		} finally {
-			connection.close();
-		}
-	}
-
-	private List<Map<String, String>> getResultUsingQuery(PreparedStatement prepareStatement)
-			throws SQLException {
-		try {
-			ResultSet resultSet = prepareStatement.executeQuery();
-			try {
-				List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
-				return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
-			} finally {
-				resultSet.close();
-			}
-		} finally {
-			prepareStatement.close();
-		}
-	}
-
-	private List<Map<String, String>> createListOfMapsFromResultSetUsingColumnNames(
-			ResultSet resultSet, List<String> columnNames) throws SQLException {
-		List<Map<String, String>> all = new ArrayList<>();
-		while (resultSet.next()) {
-			HashMap<String, String> row = createMapForCurrentRowInResultSet(resultSet, columnNames);
-			all.add(row);
-		}
-		return all;
-	}
-
-	private void addParameterValuesToPreparedStatement(Map<String, String> conditions,
-			PreparedStatement prepareStatement) throws SQLException {
-		int position = 1;
-		for (String value : conditions.values()) {
-			prepareStatement.setString(position, value);
-			position++;
-		}
-	}
-
-	private void throwErrorIfNoRowIsReturned(String tableName, List<Map<String, String>> readRows) {
+	private void throwErrorIfNoRowIsReturned(String tableName, List<Map<String, Object>> readRows) {
 		if (readRows.isEmpty()) {
 			throw SqlStorageException
 					.withMessage(ERROR_READING_DATA_FROM + tableName + ": no row returned");
@@ -128,35 +61,19 @@ public final class DataReaderImp implements DataReader {
 	}
 
 	private void throwErrorIfMoreThanOneRowIsReturned(String tableName,
-			List<Map<String, String>> readRows) {
+			List<Map<String, Object>> readRows) {
 		if (resultHasMoreThanOneRow(readRows)) {
 			throw SqlStorageException.withMessage(
 					ERROR_READING_DATA_FROM + tableName + ": more than one row returned");
 		}
 	}
 
-	private boolean resultHasMoreThanOneRow(List<Map<String, String>> readRows) {
+	private boolean resultHasMoreThanOneRow(List<Map<String, Object>> readRows) {
 		return readRows.size() > 1;
 	}
 
-	private Map<String, String> getSingleResultFromList(List<Map<String, String>> readRows) {
+	private Map<String, Object> getSingleResultFromList(List<Map<String, Object>> readRows) {
 		return readRows.get(0);
-	}
-
-	private String createSqlForTableNameAndConditions(String tableName,
-			Map<String, String> conditions) {
-		String sql = "select * from " + tableName + " where ";
-		String conditionPart = createConditionPartOfSql(conditions);
-		sql += conditionPart;
-		return sql;
-	}
-
-	private String createConditionPartOfSql(Map<String, String> conditions) {
-		StringJoiner joiner = new StringJoiner(" and ");
-		for (String key : conditions.keySet()) {
-			joiner.add(key + " = ?");
-		}
-		return joiner.toString();
 	}
 
 	@Override
@@ -176,7 +93,7 @@ public final class DataReaderImp implements DataReader {
 				PreparedStatement prepareStatement = connection.prepareStatement(sql);) {
 
 			addParameterValuesToPreparedStatement(values, prepareStatement);
-			return getResultUsingQuery2(prepareStatement);
+			return getResultUsingQuery(prepareStatement);
 		}
 	}
 
@@ -189,11 +106,11 @@ public final class DataReaderImp implements DataReader {
 		}
 	}
 
-	private List<Map<String, Object>> getResultUsingQuery2(PreparedStatement prepareStatement)
+	private List<Map<String, Object>> getResultUsingQuery(PreparedStatement prepareStatement)
 			throws SQLException {
 		try (ResultSet resultSet = prepareStatement.executeQuery();) {
 			List<String> columnNames = createListOfColumnNamesFromResultSet(resultSet);
-			return createListOfMapsFromResultSetUsingColumnNames2(resultSet, columnNames);
+			return createListOfMapsFromResultSetUsingColumnNames(resultSet, columnNames);
 		}
 	}
 
@@ -213,18 +130,17 @@ public final class DataReaderImp implements DataReader {
 		return columnNames;
 	}
 
-	private List<Map<String, Object>> createListOfMapsFromResultSetUsingColumnNames2(
+	private List<Map<String, Object>> createListOfMapsFromResultSetUsingColumnNames(
 			ResultSet resultSet, List<String> columnNames) throws SQLException {
 		List<Map<String, Object>> all = new ArrayList<>();
 		while (resultSet.next()) {
-			HashMap<String, Object> row = createMapForCurrentRowInResultSet2(resultSet,
-					columnNames);
+			HashMap<String, Object> row = createMapForCurrentRowInResultSet(resultSet, columnNames);
 			all.add(row);
 		}
 		return all;
 	}
 
-	private HashMap<String, Object> createMapForCurrentRowInResultSet2(ResultSet resultSet,
+	private HashMap<String, Object> createMapForCurrentRowInResultSet(ResultSet resultSet,
 			List<String> columnNames) throws SQLException {
 		HashMap<String, Object> row = new HashMap<>();
 		for (String columnName : columnNames) {
@@ -232,12 +148,4 @@ public final class DataReaderImp implements DataReader {
 		}
 		return row;
 	}
-
-	// select * from organisation o left join organisation_name orgname on
-	// o.organisationId = orgname.id where ;
-	// o.organisationId = ? and orgname.locale = ?;
-
-	/*
-	 * update organisation set name=? where name = ?;
-	 */
 }

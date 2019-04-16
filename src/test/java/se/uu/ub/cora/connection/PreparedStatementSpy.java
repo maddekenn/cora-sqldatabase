@@ -28,10 +28,12 @@ import java.util.Map;
 public class PreparedStatementSpy implements PreparedStatement {
 
 	public boolean executeQueryWasCalled = false;
+	public boolean executeUpdateWasCalled = false;
 	public ResultSetSpy resultSet = new ResultSetSpy();
 	public boolean closeWasCalled = false;
 	public Map<String, String> usedSetStrings = new HashMap<>();
 	public Map<String, Object> usedSetObjects = new HashMap<>();
+	public int noOfAffectedRows = 0;
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
@@ -304,8 +306,8 @@ public class PreparedStatementSpy implements PreparedStatement {
 
 	@Override
 	public int executeUpdate() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		executeUpdateWasCalled = true;
+		return noOfAffectedRows;
 	}
 
 	@Override
