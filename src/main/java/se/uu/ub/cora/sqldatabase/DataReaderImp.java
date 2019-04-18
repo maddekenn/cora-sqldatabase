@@ -30,10 +30,13 @@ import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.connection.SqlConnectionProvider;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 
 public final class DataReaderImp implements DataReader {
-	private static final String ERROR_READING_DATA_FROM = "Error reading data from ";
+	private static final String ERROR_READING_DATA_USING_SQL = "Error reading data using sql: ";
 	private SqlConnectionProvider sqlConnectionProvider;
+	private Logger log = LoggerProvider.getLoggerForClass(DataReaderImp.class);
 
 	private DataReaderImp(SqlConnectionProvider sqlConnectionProvider) {
 		this.sqlConnectionProvider = sqlConnectionProvider;
@@ -53,18 +56,18 @@ public final class DataReaderImp implements DataReader {
 		return getSingleResultFromList(readRows);
 	}
 
-	private void throwErrorIfNoRowIsReturned(String tableName, List<Map<String, Object>> readRows) {
+	private void throwErrorIfNoRowIsReturned(String sql, List<Map<String, Object>> readRows) {
 		if (readRows.isEmpty()) {
 			throw SqlStorageException
-					.withMessage(ERROR_READING_DATA_FROM + tableName + ": no row returned");
+					.withMessage(ERROR_READING_DATA_USING_SQL + sql + ": no row returned");
 		}
 	}
 
-	private void throwErrorIfMoreThanOneRowIsReturned(String tableName,
+	private void throwErrorIfMoreThanOneRowIsReturned(String sql,
 			List<Map<String, Object>> readRows) {
 		if (resultHasMoreThanOneRow(readRows)) {
 			throw SqlStorageException.withMessage(
-					ERROR_READING_DATA_FROM + tableName + ": more than one row returned");
+					ERROR_READING_DATA_USING_SQL + sql + ": more than one row returned");
 		}
 	}
 
@@ -82,7 +85,9 @@ public final class DataReaderImp implements DataReader {
 		try {
 			return readUsingSqlAndValues(sql, values);
 		} catch (SQLException e) {
-			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + sql, e);
+			String message = ERROR_READING_DATA_USING_SQL + sql;
+			log.logErrorUsingMessageAndException(message, null);
+			throw SqlStorageException.withMessageAndException(message, e);
 		}
 	}
 
