@@ -86,6 +86,8 @@ public final class DataReaderImp implements DataReader {
 			return readUsingSqlAndValues(sql, values);
 		} catch (SQLException e) {
 			String message = ERROR_READING_DATA_USING_SQL + sql;
+			// Package p = getClass().getPackage();
+			// String version = p.getImplementationVersion();
 			log.logErrorUsingMessageAndException(message, null);
 			throw SqlStorageException.withMessageAndException(message, e);
 		}
