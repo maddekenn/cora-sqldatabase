@@ -41,7 +41,7 @@ import se.uu.ub.cora.sqldatabase.log.LoggerFactorySpy;
 public class DataReaderImpTest {
 	private static final String SOME_SQL = "select x from y";
 	private static final String ERROR_READING_DATA_USING_SQL = "Error reading data using sql: ";
-	private DataReader dataReader;
+	private DataReaderImp dataReader;
 	private SqlConnectionProviderSpy sqlConnectionProviderSpy;
 	private List<Object> values;
 	private LoggerFactorySpy loggerFactorySpy;
@@ -55,7 +55,6 @@ public class DataReaderImpTest {
 		sqlConnectionProviderSpy = new SqlConnectionProviderSpy();
 		dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
 		values = new ArrayList<>();
-
 	}
 
 	private Map<String, String> createMapWithColumnNamesAndValues(List<String> columnNames,
@@ -66,6 +65,11 @@ public class DataReaderImpTest {
 		columnValues.put(columnNames.get(2), "thirdValue" + extraValue);
 		columnValues.put(columnNames.get(3), "someOther value four" + extraValue);
 		return columnValues;
+	}
+
+	@Test
+	public void testGetSqlConnectionProvider() {
+		assertEquals(dataReader.getSqlConnectionProvider(), sqlConnectionProviderSpy);
 	}
 
 	@Test(expectedExceptions = SqlStorageException.class, expectedExceptionsMessageRegExp = ""

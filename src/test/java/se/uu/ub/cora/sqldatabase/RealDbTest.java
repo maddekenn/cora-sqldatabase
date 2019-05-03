@@ -6,12 +6,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.connection.ParameterConnectionProviderImp;
 import se.uu.ub.cora.connection.SqlConnectionProvider;
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.sqldatabase.log.LoggerFactorySpy;
 
 public class RealDbTest {
+
+	private LoggerFactorySpy loggerFactorySpy;
+
+	@BeforeMethod
+	public void beforeMethod() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+
+	}
+
 	@Test(enabled = false)
 	private void test() {
 		SqlConnectionProvider sProvider = ParameterConnectionProviderImp.usingUriAndUserAndPassword(
@@ -92,4 +105,25 @@ public class RealDbTest {
 				.executePreparedStatementQueryUsingSqlAndValues(sql, values);
 		assertNotNull(result);
 	}
+
+	@Test(enabled = true)
+	private void testReadAlvinUser() {
+		SqlConnectionProvider sProvider = ParameterConnectionProviderImp.usingUriAndUserAndPassword(
+				"jdbc:postgresql://dev-alvin-postgresql:5432/alvin", "alvinAdmin", "alvinAdmin");
+		DataReaderImp dataReaderImp = DataReaderImp.usingSqlConnectionProvider(sProvider);
+		String sql = "select u.*, ar.group_id from alvin_seam_user u "
+				+ "left join alvin_role ar on u.id = ar.user_id "
+				// + "where ar.group_id = 54 and u.userid='olfel499' and u.domain='uu';";
+				+ "where u.userid='olfel499' and u.domain='uu';";
+		// String sql = "select * from organisation ;";
+		List<Object> values = new ArrayList<>();
+		// values.add(51);
+		List<Map<String, Object>> result = dataReaderImp
+				.executePreparedStatementQueryUsingSqlAndValues(sql, values);
+		for (Map<String, Object> map : result) {
+			System.out.println(map);
+		}
+		assertNotNull(result);
+	}
+
 }

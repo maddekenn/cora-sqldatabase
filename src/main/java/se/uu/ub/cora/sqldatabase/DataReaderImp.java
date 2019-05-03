@@ -155,4 +155,9 @@ public final class DataReaderImp implements DataReader {
 		}
 		return row;
 	}
+
+	public SqlConnectionProvider getSqlConnectionProvider() {
+		// needed for test
+		return sqlConnectionProvider;
+	}
 }
