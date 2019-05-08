@@ -106,7 +106,7 @@ public class RealDbTest {
 		assertNotNull(result);
 	}
 
-	@Test(enabled = true)
+	@Test(enabled = false)
 	private void testReadAlvinUser() {
 		SqlConnectionProvider sProvider = ParameterConnectionProviderImp.usingUriAndUserAndPassword(
 				"jdbc:postgresql://dev-alvin-postgresql:5432/alvin", "alvinAdmin", "alvinAdmin");
