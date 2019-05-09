@@ -31,7 +31,7 @@ public class ResultSetSpy implements ResultSet {
 	public List<String> columnNames = new ArrayList<>();
 	public boolean getMetadataWasCalled = false;
 	public Map<String, String> columnValues = new HashMap<>();
-	public List<Map<String, String>> rowValues = new ArrayList<>();
+	public List<Map<String, Object>> rowValues = new ArrayList<>();
 	private int currentRow = -1;
 	public boolean closeWasCalled = false;
 
@@ -162,7 +162,8 @@ public class ResultSetSpy implements ResultSet {
 
 	@Override
 	public String getString(String columnLabel) throws SQLException {
-		return rowValues.get(currentRow).get(columnLabel);
+		// return null;
+		return (String) rowValues.get(currentRow).get(columnLabel);
 	}
 
 	@Override
@@ -288,8 +289,7 @@ public class ResultSetSpy implements ResultSet {
 
 	@Override
 	public Object getObject(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return rowValues.get(currentRow).get(columnLabel);
 	}
 
 	@Override

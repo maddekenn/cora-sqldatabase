@@ -57,12 +57,12 @@ public class DataReaderImpTest {
 		values = new ArrayList<>();
 	}
 
-	private Map<String, String> createMapWithColumnNamesAndValues(List<String> columnNames,
+	private Map<String, Object> createMapWithColumnNamesAndValues(List<String> columnNames,
 			String extraValue) {
-		Map<String, String> columnValues = new HashMap<>();
+		Map<String, Object> columnValues = new HashMap<>();
 		columnValues.put(columnNames.get(0), "value1" + extraValue);
 		columnValues.put(columnNames.get(1), "secondValue" + extraValue);
-		columnValues.put(columnNames.get(2), "thirdValue" + extraValue);
+		columnValues.put(columnNames.get(2), 3);
 		columnValues.put(columnNames.get(3), "someOther value four" + extraValue);
 		return columnValues;
 	}
@@ -176,7 +176,7 @@ public class DataReaderImpTest {
 		List<String> columnNames = createListOfColumnNames();
 		resultSetSpy.columnNames = columnNames;
 
-		List<Map<String, String>> rowValues = createListOfRowValues(columnNames);
+		List<Map<String, Object>> rowValues = createListOfRowValues(columnNames);
 		resultSetSpy.rowValues = rowValues;
 	}
 
@@ -189,9 +189,9 @@ public class DataReaderImpTest {
 		return columnNames;
 	}
 
-	private List<Map<String, String>> createListOfRowValues(List<String> columnNames) {
-		List<Map<String, String>> rowValues = new ArrayList<>();
-		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
+	private List<Map<String, Object>> createListOfRowValues(List<String> columnNames) {
+		List<Map<String, Object>> rowValues = new ArrayList<>();
+		Map<String, Object> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
 		rowValues.add(columnValues);
 		return rowValues;
 	}
@@ -217,7 +217,7 @@ public class DataReaderImpTest {
 		List<String> columnNames = createListOfColumnNames();
 		resultSetSpy.columnNames = columnNames;
 
-		List<Map<String, String>> rowValues = createListOfRowValues(columnNames);
+		List<Map<String, Object>> rowValues = createListOfRowValues(columnNames);
 		resultSetSpy.rowValues = rowValues;
 
 		Map<String, Object> readRow = dataReader.readOneRowOrFailUsingSqlAndValues(SOME_SQL,
@@ -236,7 +236,7 @@ public class DataReaderImpTest {
 		List<String> columnNames = createListOfColumnNames();
 		resultSetSpy.columnNames = columnNames;
 
-		List<Map<String, String>> rowValues = createListOfRowValues(columnNames);
+		List<Map<String, Object>> rowValues = createListOfRowValues(columnNames);
 		resultSetSpy.rowValues = rowValues;
 
 		Map<String, Object> readRow = dataReader.readOneRowOrFailUsingSqlAndValues(SOME_SQL,
@@ -244,7 +244,7 @@ public class DataReaderImpTest {
 		assertEquals(readRow.keySet().size(), 4);
 		assertEquals(readRow.get(columnNames.get(0)), "value1");
 		assertEquals(readRow.get(columnNames.get(1)), "secondValue");
-		assertEquals(readRow.get(columnNames.get(2)), "thirdValue");
+		assertEquals(readRow.get(columnNames.get(2)), 3);
 		assertEquals(readRow.get(columnNames.get(3)), "someOther value four");
 	}
 
@@ -257,10 +257,10 @@ public class DataReaderImpTest {
 		List<String> columnNames = createListOfColumnNames();
 		resultSetSpy.columnNames = columnNames;
 
-		List<Map<String, String>> rowValues = new ArrayList<>();
-		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
+		List<Map<String, Object>> rowValues = new ArrayList<>();
+		Map<String, Object> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
 		rowValues.add(columnValues);
-		Map<String, String> columnValues2 = createMapWithColumnNamesAndValues(columnNames, "2");
+		Map<String, Object> columnValues2 = createMapWithColumnNamesAndValues(columnNames, "2");
 		rowValues.add(columnValues2);
 		resultSetSpy.rowValues = rowValues;
 
@@ -365,8 +365,8 @@ public class DataReaderImpTest {
 		List<String> columnNames = createListOfColumnNames();
 		resultSetSpy.columnNames = columnNames;
 
-		List<Map<String, String>> rowValues = new ArrayList<>();
-		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
+		List<Map<String, Object>> rowValues = new ArrayList<>();
+		Map<String, Object> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
 		rowValues.add(columnValues);
 		resultSetSpy.rowValues = rowValues;
 
@@ -390,9 +390,9 @@ public class DataReaderImpTest {
 		List<String> columnNames = createListOfColumnNames();
 		resultSetSpy.columnNames = columnNames;
 
-		List<Map<String, String>> rowValues = new ArrayList<>();
+		List<Map<String, Object>> rowValues = new ArrayList<>();
 
-		Map<String, String> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
+		Map<String, Object> columnValues = createMapWithColumnNamesAndValues(columnNames, "");
 		rowValues.add(columnValues);
 
 		resultSetSpy.rowValues = rowValues;
@@ -405,7 +405,7 @@ public class DataReaderImpTest {
 		assertEquals(row0.keySet().size(), 4);
 		assertEquals(row0.get(columnNames.get(0)), "value1");
 		assertEquals(row0.get(columnNames.get(1)), "secondValue");
-		assertEquals(row0.get(columnNames.get(2)), "thirdValue");
+		assertEquals(row0.get(columnNames.get(2)), 3);
 		assertEquals(row0.get(columnNames.get(3)), "someOther value four");
 	}
 
