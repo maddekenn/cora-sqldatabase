@@ -149,7 +149,7 @@ public final class DataReaderImp implements DataReader {
 			List<String> columnNames) throws SQLException {
 		HashMap<String, Object> row = new HashMap<>();
 		for (String columnName : columnNames) {
-			row.put(columnName, resultSet.getString(columnName));
+			row.put(columnName, resultSet.getObject(columnName));
 		}
 		return row;
 	}
