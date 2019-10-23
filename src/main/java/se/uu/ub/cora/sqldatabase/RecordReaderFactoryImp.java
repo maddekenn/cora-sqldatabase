@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,7 +31,8 @@ public final class RecordReaderFactoryImp implements RecordReaderFactory {
 
 	@Override
 	public RecordReader factor() {
-		return RecordReaderImp.usingSqlConnectionProvider(connectionProvider);
+		DataReader dataReader = DataReaderImp.usingSqlConnectionProvider(connectionProvider);
+		return RecordReaderImp.usingDataReader(dataReader);
 	}
 
 	public SqlConnectionProvider getConnectionProvider() {

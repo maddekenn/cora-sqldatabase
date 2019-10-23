@@ -24,12 +24,12 @@ import java.util.Map;
 
 public interface RecordReader {
 
-	List<Map<String, String>> readAllFromTable(String tableName);
+	List<Map<String, Object>> readAllFromTable(String tableName);
 
-	List<Map<String, String>> readFromTableUsingConditions(String tableName,
-			Map<String, String> conditions);
+	List<Map<String, Object>> readFromTableUsingConditions(String tableName,
+			Map<String, Object> conditions);
 
-	Map<String, String> readOneRowFromDbUsingTableAndConditions(String tableName,
-			Map<String, String> conditions);
+	Map<String, Object> readOneRowFromDbUsingTableAndConditions(String tableName,
+			Map<String, Object> conditions);
 
 }
