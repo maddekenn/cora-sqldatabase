@@ -115,10 +115,5 @@ public final class RecordReaderImp implements RecordReader {
 		// needed for test
 		return dataReader;
 	}
-	//
-	// public SqlConnectionProvider getConnectionProvider() {
-	// // needed for test
-	// return sqlConnectionProvider;
-	// }
 
 }

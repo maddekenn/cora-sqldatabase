@@ -44,7 +44,7 @@ public class RecordReaderFactoryTest {
 
 	@Test
 	public void testInit() throws Exception {
-		assertEquals(readerFactory.getConnectionProvider(), connectionProvider);
+		assertEquals(readerFactory.getSqlConnectionProvider(), connectionProvider);
 	}
 
 	@Test

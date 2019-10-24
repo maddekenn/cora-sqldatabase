@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,28 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.sqldatabase;
 
-import se.uu.ub.cora.connection.SqlConnectionProvider;
+import java.util.Map;
 
-public final class RecordReaderFactoryImp implements RecordReaderFactory {
+public class RecordUpdaterImp implements RecordUpdater {
 
-	private SqlConnectionProvider sqlConnectionProvider;
+	private DataUpdater dataUpdater;
 
-	public RecordReaderFactoryImp(SqlConnectionProvider sqlConnectionProvider) {
-		this.sqlConnectionProvider = sqlConnectionProvider;
+	public RecordUpdaterImp(DataUpdater dataUpdater) {
+		this.dataUpdater = dataUpdater;
 	}
 
 	@Override
-	public RecordReader factor() {
-		DataReader dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProvider);
-		return RecordReaderImp.usingDataReader(dataReader);
+	public void updateRecordInDbUsingTableAndValuesAndConditions(String tableName,
+			Map<String, Object> values, Map<String, Object> conditions) {
+		// TODO Auto-generated method stub
+
 	}
 
-	public SqlConnectionProvider getSqlConnectionProvider() {
-		// needed for tests
-		return sqlConnectionProvider;
+	public DataUpdater getDataUpdater() {
+		return dataUpdater;
 	}
 
 }

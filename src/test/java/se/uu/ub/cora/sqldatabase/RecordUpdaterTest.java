@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,28 +16,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.sqldatabase;
 
-import se.uu.ub.cora.connection.SqlConnectionProvider;
+import static org.testng.Assert.assertEquals;
 
-public final class RecordReaderFactoryImp implements RecordReaderFactory {
+import org.testng.annotations.Test;
 
-	private SqlConnectionProvider sqlConnectionProvider;
+public class RecordUpdaterTest {
 
-	public RecordReaderFactoryImp(SqlConnectionProvider sqlConnectionProvider) {
-		this.sqlConnectionProvider = sqlConnectionProvider;
-	}
-
-	@Override
-	public RecordReader factor() {
-		DataReader dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProvider);
-		return RecordReaderImp.usingDataReader(dataReader);
-	}
-
-	public SqlConnectionProvider getSqlConnectionProvider() {
-		// needed for tests
-		return sqlConnectionProvider;
+	@Test
+	public void testRecordUpdater() {
+		DataUpdater dataUpdater = new DataUpdaterSpy();
+		RecordUpdaterImp recordUpdater = new RecordUpdaterImp(dataUpdater);
+		assertEquals(recordUpdater.getDataUpdater(), dataUpdater);
 	}
 
 }
