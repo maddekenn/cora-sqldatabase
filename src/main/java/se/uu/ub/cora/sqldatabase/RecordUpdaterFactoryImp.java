@@ -38,4 +38,9 @@ public class RecordUpdaterFactoryImp implements RecordUpdaterFactory {
 		return new RecordUpdaterImp(dataUpdater);
 	}
 
+	public SqlConnectionProvider getSqlConnectionProvider() {
+		// needed for tests
+		return sqlConnectionProvider;
+	}
+
 }

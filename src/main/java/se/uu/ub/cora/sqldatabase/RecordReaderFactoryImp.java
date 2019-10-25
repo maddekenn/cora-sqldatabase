@@ -23,9 +23,14 @@ import se.uu.ub.cora.connection.SqlConnectionProvider;
 
 public final class RecordReaderFactoryImp implements RecordReaderFactory {
 
+	public static RecordReaderFactoryImp usingSqlConnectionProvider(
+			SqlConnectionProvider sqlConnectionProvider) {
+		return new RecordReaderFactoryImp(sqlConnectionProvider);
+	}
+
 	private SqlConnectionProvider sqlConnectionProvider;
 
-	public RecordReaderFactoryImp(SqlConnectionProvider sqlConnectionProvider) {
+	private RecordReaderFactoryImp(SqlConnectionProvider sqlConnectionProvider) {
 		this.sqlConnectionProvider = sqlConnectionProvider;
 	}
 

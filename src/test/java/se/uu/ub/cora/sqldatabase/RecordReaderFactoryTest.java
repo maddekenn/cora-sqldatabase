@@ -39,7 +39,7 @@ public class RecordReaderFactoryTest {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		connectionProvider = new SqlConnectionProviderSpy();
-		readerFactory = new RecordReaderFactoryImp(connectionProvider);
+		readerFactory = RecordReaderFactoryImp.usingSqlConnectionProvider(connectionProvider);
 	}
 
 	@Test
