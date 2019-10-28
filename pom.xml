@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>se.uu.ub.cora</groupId>
 		<artifactId>cora-parent</artifactId>
-		<version>0.9.0</version>
+		<version>1.0.2</version>
 	</parent>
 
 	<artifactId>sqldatabase</artifactId>
@@ -35,7 +35,7 @@
 	<url>http://maven.apache.org</url>
 
 	<properties>
-		<logger.version>1.0.0</logger.version>
+		<logger.version>2.0.0</logger.version>
 		<postgres.version>42.1.4</postgres.version>
 	</properties>
 
