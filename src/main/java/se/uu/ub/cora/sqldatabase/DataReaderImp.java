@@ -128,7 +128,7 @@ public final class DataReaderImp implements DataReader {
 
 	private List<String> createListOfColumnNamesFromMetadata(ResultSetMetaData metaData,
 			int columnCount) throws SQLException {
-		List<String> columnNames = new ArrayList<>();
+		List<String> columnNames = new ArrayList<>(columnCount);
 		for (int i = 1; i <= columnCount; i++) {
 			columnNames.add(metaData.getColumnName(i));
 		}
@@ -147,7 +147,7 @@ public final class DataReaderImp implements DataReader {
 
 	private HashMap<String, Object> createMapForCurrentRowInResultSet(ResultSet resultSet,
 			List<String> columnNames) throws SQLException {
-		HashMap<String, Object> row = new HashMap<>();
+		HashMap<String, Object> row = new HashMap<>(columnNames.size());
 		for (String columnName : columnNames) {
 			row.put(columnName, resultSet.getObject(columnName));
 		}
