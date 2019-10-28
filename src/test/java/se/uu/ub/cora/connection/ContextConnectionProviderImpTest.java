@@ -20,13 +20,13 @@ package se.uu.ub.cora.connection;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.sql.Connection;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.connection.ContextConnectionProviderImp;
 import se.uu.ub.cora.sqldatabase.SqlStorageException;
 
 public class ContextConnectionProviderImpTest {
@@ -69,13 +69,17 @@ public class ContextConnectionProviderImpTest {
 
 	@Test(expectedExceptions = SqlStorageException.class)
 	public void testInitProblemWithNullDataSource() throws Exception {
-		// InitialContextSpy context = new InitialContextSpy();
-		// context.ds = null;
-		// contextConnectionProviderImp =
-		// ContextConnectionProviderImp.usingInitialContextAndName(context,
-		// name);
-		// assertNotNull(contextConnectionProviderImp);
 		contextSpy.ds = null;
 		contextConnectionProviderImp.getConnection();
+	}
+
+	@Test
+	public void testInitProblemWithNullDataSourceSendsAlongInitalException() throws Exception {
+		contextSpy.ds = null;
+		try {
+			contextConnectionProviderImp.getConnection();
+		} catch (Exception e) {
+			assertTrue(e.getCause() instanceof SqlStorageException);
+		}
 	}
 }

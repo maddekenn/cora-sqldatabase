@@ -113,7 +113,7 @@ public final class RecordReaderImp implements RecordReader {
 
 	private List<String> createListOfColumnNamesFromMetadata(ResultSetMetaData metaData,
 			int columnCount) throws SQLException {
-		List<String> columnNames = new ArrayList<>();
+		List<String> columnNames = new ArrayList<>(columnCount);
 		for (int i = 1; i <= columnCount; i++) {
 			columnNames.add(metaData.getColumnName(i));
 		}

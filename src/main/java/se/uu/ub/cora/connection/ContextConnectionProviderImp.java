@@ -57,7 +57,7 @@ public final class ContextConnectionProviderImp implements SqlConnectionProvider
 			lookupDatasourceUsingNameIfNotLookedUpSinceBefore(context, name);
 			return ds.getConnection();
 		} catch (Exception e) {
-			throw SqlStorageException.withMessage(e.getMessage());
+			throw SqlStorageException.withMessageAndException(e.getMessage(), e);
 		}
 	}
 
