@@ -19,6 +19,7 @@
 package se.uu.ub.cora.sqldatabase;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class RecordUpdaterImp implements RecordUpdater {
 
@@ -31,8 +32,9 @@ public class RecordUpdaterImp implements RecordUpdater {
 	@Override
 	public void updateRecordInDbUsingTableAndValuesAndConditions(String tableName,
 			Map<String, Object> values, Map<String, Object> conditions) {
-		// TODO Auto-generated method stub
-
+		Entry<String, Object> next = values.entrySet().iterator().next();
+		dataUpdater.executeUsingSqlAndValues(
+				"update " + tableName + " set " + next.getKey() + " = ?", null);
 	}
 
 	public DataUpdater getDataUpdater() {

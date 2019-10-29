@@ -31,7 +31,6 @@ public final class RecordReaderImp implements RecordReader {
 
 	private RecordReaderImp(DataReader dataReader) {
 		this.dataReader = dataReader;
-
 	}
 
 	public static RecordReaderImp usingDataReader(DataReader dataReader) {
@@ -100,15 +99,19 @@ public final class RecordReaderImp implements RecordReader {
 	public List<Map<String, Object>> readFromTableUsingConditions(String tableName,
 			Map<String, Object> conditions) {
 		try {
-
-			String sql = createSqlForTableNameAndConditions(tableName, conditions);
-			List<Object> values = new ArrayList<>();
-			values.addAll(conditions.values());
-			return dataReader.executePreparedStatementQueryUsingSqlAndValues(sql, values);
+			return tryToReadFromTableUsingConditions(tableName, conditions);
 		} catch (SqlStorageException e) {
 			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
 					e);
 		}
+	}
+
+	private List<Map<String, Object>> tryToReadFromTableUsingConditions(String tableName,
+			Map<String, Object> conditions) {
+		String sql = createSqlForTableNameAndConditions(tableName, conditions);
+		List<Object> values = new ArrayList<>();
+		values.addAll(conditions.values());
+		return dataReader.executePreparedStatementQueryUsingSqlAndValues(sql, values);
 	}
 
 	public DataReader getDataReader() {

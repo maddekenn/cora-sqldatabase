@@ -18,12 +18,19 @@
  */
 package se.uu.ub.cora.sqldatabase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataUpdaterSpy implements DataUpdater {
 
+	public String sql = "";
+	public List<Object> values = new ArrayList<>();
+
 	@Override
 	public int executeUsingSqlAndValues(String sql, List<Object> values) {
+		this.sql = sql;
+		this.values = values;
+
 		// TODO Auto-generated method stub
 		return 0;
 	}

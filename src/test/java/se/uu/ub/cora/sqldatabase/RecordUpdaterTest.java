@@ -20,15 +20,32 @@ package se.uu.ub.cora.sqldatabase;
 
 import static org.testng.Assert.assertEquals;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.testng.annotations.Test;
 
 public class RecordUpdaterTest {
 
 	@Test
-	public void testRecordUpdater() {
+	public void testDataUpdaterInRecordUpdater() {
 		DataUpdater dataUpdater = new DataUpdaterSpy();
 		RecordUpdaterImp recordUpdater = new RecordUpdaterImp(dataUpdater);
 		assertEquals(recordUpdater.getDataUpdater(), dataUpdater);
+	}
+
+	@Test
+	public void testUpdateOneRecord() {
+		DataUpdater dataUpdater = new DataUpdaterSpy();
+		RecordUpdaterImp recordUpdater = new RecordUpdaterImp(dataUpdater);
+		Map<String, Object> values = new HashMap<>();
+		values.put("organisationName", "someNewOrganisationName");
+		Map<String, Object> conditions = new HashMap<>();
+		recordUpdater.updateRecordInDbUsingTableAndValuesAndConditions("organisation", values,
+				conditions);
+		DataUpdaterSpy dataUpdaterSpy = (DataUpdaterSpy) recordUpdater.getDataUpdater();
+		assertEquals(dataUpdaterSpy.sql,
+				"update organisation set organisationName = ? where organisation_id = ?");
 	}
 
 }
