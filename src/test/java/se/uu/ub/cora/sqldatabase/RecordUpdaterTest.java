@@ -23,29 +23,69 @@ import static org.testng.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class RecordUpdaterTest {
 
+	private DataUpdater dataUpdater;
+	private RecordUpdaterImp recordUpdater;
+	private Map<String, Object> values = new HashMap<>();
+	private Map<String, Object> conditions = new HashMap<>();
+
+	@BeforeMethod
+	public void setUp() {
+		dataUpdater = new DataUpdaterSpy();
+		recordUpdater = new RecordUpdaterImp(dataUpdater);
+		values.put("organisation_name", "someNewOrganisationName");
+		conditions.put("organisation_id", 123);
+	}
+
 	@Test
 	public void testDataUpdaterInRecordUpdater() {
-		DataUpdater dataUpdater = new DataUpdaterSpy();
-		RecordUpdaterImp recordUpdater = new RecordUpdaterImp(dataUpdater);
 		assertEquals(recordUpdater.getDataUpdater(), dataUpdater);
 	}
 
 	@Test
-	public void testUpdateOneRecord() {
-		DataUpdater dataUpdater = new DataUpdaterSpy();
-		RecordUpdaterImp recordUpdater = new RecordUpdaterImp(dataUpdater);
-		Map<String, Object> values = new HashMap<>();
-		values.put("organisationName", "someNewOrganisationName");
-		Map<String, Object> conditions = new HashMap<>();
+	public void testUpdateOneRecordOneColumnOneCondition() {
 		recordUpdater.updateRecordInDbUsingTableAndValuesAndConditions("organisation", values,
 				conditions);
 		DataUpdaterSpy dataUpdaterSpy = (DataUpdaterSpy) recordUpdater.getDataUpdater();
 		assertEquals(dataUpdaterSpy.sql,
-				"update organisation set organisationName = ? where organisation_id = ?");
+				"update organisation set organisation_name = ? where organisation_id = ?");
+
+		assertEquals(dataUpdaterSpy.values.get(0), "someNewOrganisationName");
+		assertEquals(dataUpdaterSpy.values.get(1), 123);
+	}
+
+	@Test
+	public void testUpdateOneRecordTwoColumnsOneCondition() {
+		values.put("organisation_code", "someNewOrgCode");
+		recordUpdater.updateRecordInDbUsingTableAndValuesAndConditions("organisation", values,
+				conditions);
+		DataUpdaterSpy dataUpdaterSpy = (DataUpdaterSpy) recordUpdater.getDataUpdater();
+		assertEquals(dataUpdaterSpy.sql,
+				"update organisation set organisation_code = ?, organisation_name = ? where organisation_id = ?");
+
+		assertEquals(dataUpdaterSpy.values.get(0), "someNewOrgCode");
+		assertEquals(dataUpdaterSpy.values.get(1), "someNewOrganisationName");
+		assertEquals(dataUpdaterSpy.values.get(2), 123);
+	}
+
+	@Test
+	public void testUpdateOneRecordTwoColumnsTwoConditions() {
+		values.put("organisation_code", "someNewOrgCode");
+		conditions.put("country_code", "swe");
+		recordUpdater.updateRecordInDbUsingTableAndValuesAndConditions("organisation", values,
+				conditions);
+		DataUpdaterSpy dataUpdaterSpy = (DataUpdaterSpy) recordUpdater.getDataUpdater();
+		assertEquals(dataUpdaterSpy.sql,
+				"update organisation set organisation_code = ?, organisation_name = ? where organisation_id = ? and country_code = ?");
+
+		assertEquals(dataUpdaterSpy.values.get(0), "someNewOrgCode");
+		assertEquals(dataUpdaterSpy.values.get(1), "someNewOrganisationName");
+		assertEquals(dataUpdaterSpy.values.get(2), 123);
+		assertEquals(dataUpdaterSpy.values.get(3), "swe");
 	}
 
 }

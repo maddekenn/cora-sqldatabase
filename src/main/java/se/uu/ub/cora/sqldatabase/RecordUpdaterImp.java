@@ -18,8 +18,11 @@
  */
 package se.uu.ub.cora.sqldatabase;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.StringJoiner;
 
 public class RecordUpdaterImp implements RecordUpdater {
 
@@ -31,14 +34,58 @@ public class RecordUpdaterImp implements RecordUpdater {
 
 	@Override
 	public void updateRecordInDbUsingTableAndValuesAndConditions(String tableName,
-			Map<String, Object> values, Map<String, Object> conditions) {
-		Entry<String, Object> next = values.entrySet().iterator().next();
-		dataUpdater.executeUsingSqlAndValues(
-				"update " + tableName + " set " + next.getKey() + " = ?", null);
+			Map<String, Object> columns, Map<String, Object> conditions) {
+
+		List<Object> valuesForUpdate = new ArrayList<>();
+		String sql = createFirstPartOfSqlStatement(tableName, columns, valuesForUpdate);
+
+		String secondPart = createSecondPartOfSqlStatement(conditions, valuesForUpdate);
+		sql += secondPart;
+
+		dataUpdater.executeUsingSqlAndValues(sql, valuesForUpdate);
+	}
+
+	private String createSecondPartOfSqlStatement(Map<String, Object> conditions,
+			List<Object> valuesForUpdate) {
+		List<String> conditionNames = new ArrayList<>();
+		for (Entry<String, Object> condition : conditions.entrySet()) {
+			conditionNames.add(condition.getKey());
+			valuesForUpdate.add(condition.getValue());
+		}
+		return " where " + createValuePartOfSql(conditionNames);
+	}
+
+	private String createFirstPartOfSqlStatement(String tableName, Map<String, Object> columns,
+			List<Object> valuesForUpdate) {
+		List<String> columnNames = new ArrayList<>(columns.size());
+		for (Entry<String, Object> column : columns.entrySet()) {
+			columnNames.add(column.getKey());
+			valuesForUpdate.add(column.getValue());
+		}
+		return createSqlForTableNameAndColumns(tableName, columnNames);
 	}
 
 	public DataUpdater getDataUpdater() {
 		return dataUpdater;
+	}
+
+	private String createSqlForTableNameAndColumns(String tableName, List<String> columnNames) {
+		String sql = "update " + tableName + " set ";
+
+		StringJoiner joiner = new StringJoiner(", ");
+		for (String columnName : columnNames) {
+			joiner.add(columnName + " = ?");
+		}
+		sql += joiner.toString();
+		return sql;
+	}
+
+	private String createValuePartOfSql(List<String> conditions) {
+		StringJoiner joiner = new StringJoiner(" and ");
+		for (String key : conditions) {
+			joiner.add(key + " = ?");
+		}
+		return joiner.toString();
 	}
 
 }
