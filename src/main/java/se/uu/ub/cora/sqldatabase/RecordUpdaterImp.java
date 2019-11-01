@@ -36,56 +36,78 @@ public class RecordUpdaterImp implements RecordUpdater {
 	public void updateRecordInDbUsingTableAndValuesAndConditions(String tableName,
 			Map<String, Object> columns, Map<String, Object> conditions) {
 
-		List<Object> valuesForUpdate = new ArrayList<>();
-		String sql = createFirstPartOfSqlStatement(tableName, columns, valuesForUpdate);
+		StringBuilder sql = createSql(tableName, columns, conditions);
+		List<Object> valuesForUpdate = addColumnsAndConditionsToValuesForUpdate(columns,
+				conditions);
 
-		String secondPart = createSecondPartOfSqlStatement(conditions, valuesForUpdate);
-		sql += secondPart;
-
-		dataUpdater.executeUsingSqlAndValues(sql, valuesForUpdate);
+		dataUpdater.executeUsingSqlAndValues(sql.toString(), valuesForUpdate);
 	}
 
-	private String createSecondPartOfSqlStatement(Map<String, Object> conditions,
-			List<Object> valuesForUpdate) {
-		List<String> conditionNames = new ArrayList<>();
-		for (Entry<String, Object> condition : conditions.entrySet()) {
-			conditionNames.add(condition.getKey());
-			valuesForUpdate.add(condition.getValue());
-		}
-		return " where " + createValuePartOfSql(conditionNames);
+	private StringBuilder createSql(String tableName, Map<String, Object> columns,
+			Map<String, Object> conditions) {
+		StringBuilder sql = new StringBuilder(createSelectPartOfSqlStatement(tableName, columns));
+		sql.append(createWherePartOfSqlStatement(conditions));
+		return sql;
 	}
 
-	private String createFirstPartOfSqlStatement(String tableName, Map<String, Object> columns,
-			List<Object> valuesForUpdate) {
+	private String createSelectPartOfSqlStatement(String tableName, Map<String, Object> columns) {
+		StringBuilder sql = new StringBuilder("update " + tableName + " set ");
+		List<String> columnNames = getAllColumnNames(columns);
+		return appendColumnsToSelectPart(sql, columnNames);
+	}
+
+	private List<String> getAllColumnNames(Map<String, Object> columns) {
 		List<String> columnNames = new ArrayList<>(columns.size());
 		for (Entry<String, Object> column : columns.entrySet()) {
 			columnNames.add(column.getKey());
-			valuesForUpdate.add(column.getValue());
 		}
-		return createSqlForTableNameAndColumns(tableName, columnNames);
+		return columnNames;
+	}
+
+	private String appendColumnsToSelectPart(StringBuilder sql, List<String> columnNames) {
+		StringJoiner joiner = new StringJoiner(", ");
+		addAllToJoiner(columnNames, joiner);
+		sql.append(joiner.toString());
+		return sql.toString();
+	}
+
+	private void addAllToJoiner(List<String> columnNames, StringJoiner joiner) {
+		for (String columnName : columnNames) {
+			joiner.add(columnName + " = ?");
+		}
+	}
+
+	private String createWherePartOfSqlStatement(Map<String, Object> conditions) {
+		StringBuilder sql = new StringBuilder(" where ");
+		List<String> conditionNames = getAllConditionNames(conditions);
+		return appendConditionsToWherePart(sql, conditionNames);
+	}
+
+	private List<String> getAllConditionNames(Map<String, Object> conditions) {
+		List<String> conditionNames = new ArrayList<>();
+		for (Entry<String, Object> condition : conditions.entrySet()) {
+			conditionNames.add(condition.getKey());
+		}
+		return conditionNames;
 	}
 
 	public DataUpdater getDataUpdater() {
 		return dataUpdater;
 	}
 
-	private String createSqlForTableNameAndColumns(String tableName, List<String> columnNames) {
-		String sql = "update " + tableName + " set ";
-
-		StringJoiner joiner = new StringJoiner(", ");
-		for (String columnName : columnNames) {
-			joiner.add(columnName + " = ?");
-		}
-		sql += joiner.toString();
-		return sql;
+	private String appendConditionsToWherePart(StringBuilder sql, List<String> conditions) {
+		StringJoiner joiner = new StringJoiner(" and ");
+		addAllToJoiner(conditions, joiner);
+		sql.append(joiner.toString());
+		return sql.toString();
 	}
 
-	private String createValuePartOfSql(List<String> conditions) {
-		StringJoiner joiner = new StringJoiner(" and ");
-		for (String key : conditions) {
-			joiner.add(key + " = ?");
-		}
-		return joiner.toString();
+	private List<Object> addColumnsAndConditionsToValuesForUpdate(Map<String, Object> columns,
+			Map<String, Object> conditions) {
+		List<Object> valuesForUpdate = new ArrayList<>();
+		valuesForUpdate.addAll(columns.values());
+		valuesForUpdate.addAll(conditions.values());
+		return valuesForUpdate;
 	}
 
 }
