@@ -26,7 +26,7 @@ import org.testng.annotations.Test;
 
 public class RecordUpdaterFactoryTest {
 	private SqlConnectionProviderSpy connectionProvider;
-	private RecordUpdaterFactory factory;
+	private RecordUpdaterFactoryImp factory;
 
 	@BeforeMethod
 	public void setUp() {
@@ -49,4 +49,8 @@ public class RecordUpdaterFactoryTest {
 
 	}
 
+	@Test
+	public void testSqlConnectionProvider() {
+		assertSame(factory.getSqlConnectionProvider(), connectionProvider);
+	}
 }
