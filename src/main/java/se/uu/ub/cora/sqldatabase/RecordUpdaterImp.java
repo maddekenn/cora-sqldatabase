@@ -67,7 +67,7 @@ public class RecordUpdaterImp implements RecordUpdater {
 	private String appendColumnsToSelectPart(StringBuilder sql, List<String> columnNames) {
 		StringJoiner joiner = new StringJoiner(", ");
 		addAllToJoiner(columnNames, joiner);
-		sql.append(joiner.toString());
+		sql.append(joiner);
 		return sql.toString();
 	}
 
@@ -84,7 +84,7 @@ public class RecordUpdaterImp implements RecordUpdater {
 	}
 
 	private List<String> getAllConditionNames(Map<String, Object> conditions) {
-		List<String> conditionNames = new ArrayList<>();
+		List<String> conditionNames = new ArrayList<>(conditions.entrySet().size());
 		for (Entry<String, Object> condition : conditions.entrySet()) {
 			conditionNames.add(condition.getKey());
 		}
@@ -98,7 +98,7 @@ public class RecordUpdaterImp implements RecordUpdater {
 	private String appendConditionsToWherePart(StringBuilder sql, List<String> conditions) {
 		StringJoiner joiner = new StringJoiner(" and ");
 		addAllToJoiner(conditions, joiner);
-		sql.append(joiner.toString());
+		sql.append(joiner);
 		return sql.toString();
 	}
 
