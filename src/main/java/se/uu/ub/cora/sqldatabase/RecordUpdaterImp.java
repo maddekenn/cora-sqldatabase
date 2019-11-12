@@ -84,7 +84,7 @@ public class RecordUpdaterImp implements RecordUpdater {
 	}
 
 	private List<String> getAllConditionNames(Map<String, Object> conditions) {
-		List<String> conditionNames = new ArrayList<>(conditions.entrySet().size());
+		List<String> conditionNames = new ArrayList<>(conditions.size());
 		for (Entry<String, Object> condition : conditions.entrySet()) {
 			conditionNames.add(condition.getKey());
 		}
