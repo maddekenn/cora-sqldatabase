@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,24 +20,31 @@
 package se.uu.ub.cora.sqldatabase;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.sqldatabase.log.LoggerFactorySpy;
+
 public class RecordReaderFactoryTest {
 	private SqlConnectionProviderSpy connectionProvider;
 	private RecordReaderFactoryImp readerFactory;
+	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		connectionProvider = new SqlConnectionProviderSpy();
-		readerFactory = new RecordReaderFactoryImp(connectionProvider);
+		readerFactory = RecordReaderFactoryImp.usingSqlConnectionProvider(connectionProvider);
 	}
 
 	@Test
 	public void testInit() throws Exception {
-		assertEquals(readerFactory.getConnectionProvider(), connectionProvider);
+		assertEquals(readerFactory.getSqlConnectionProvider(), connectionProvider);
 	}
 
 	@Test
@@ -47,9 +54,9 @@ public class RecordReaderFactoryTest {
 	}
 
 	@Test
-	public void testProvidedConnectionProviderIsUsed() throws Exception {
-		RecordReader recordReader = readerFactory.factor();
-		recordReader.readAllFromTable("someTableName");
-		assertTrue(connectionProvider.getConnectionHasBeenCalled);
+	public void testDataReaderInRecordReader() throws Exception {
+		RecordReaderImp recordReader = (RecordReaderImp) readerFactory.factor();
+		DataReaderImp dataReader = (DataReaderImp) recordReader.getDataReader();
+		assertSame(dataReader.getSqlConnectionProvider(), connectionProvider);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,20 +16,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.sqldatabase;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-public interface RecordReader {
+public class DataUpdaterSpy implements DataUpdater {
 
-	List<Map<String, Object>> readAllFromTable(String tableName);
+	public String sql = "";
+	public List<Object> values = new ArrayList<>();
 
-	List<Map<String, Object>> readFromTableUsingConditions(String tableName,
-			Map<String, Object> conditions);
+	@Override
+	public int executeUsingSqlAndValues(String sql, List<Object> values) {
+		this.sql = sql;
+		this.values = values;
 
-	Map<String, Object> readOneRowFromDbUsingTableAndConditions(String tableName,
-			Map<String, Object> conditions);
+		// TODO Auto-generated method stub
+		return 0;
+	}
 
 }

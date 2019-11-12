@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,20 +16,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.sqldatabase;
 
-import java.util.List;
 import java.util.Map;
 
-public interface RecordReader {
+public interface RecordUpdater {
 
-	List<Map<String, Object>> readAllFromTable(String tableName);
-
-	List<Map<String, Object>> readFromTableUsingConditions(String tableName,
-			Map<String, Object> conditions);
-
-	Map<String, Object> readOneRowFromDbUsingTableAndConditions(String tableName,
-			Map<String, Object> conditions);
+	void updateRecordInDbUsingTableAndValuesAndConditions(String tableName,
+			Map<String, Object> values, Map<String, Object> conditions);
 
 }

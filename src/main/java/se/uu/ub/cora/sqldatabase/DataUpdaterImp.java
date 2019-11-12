@@ -64,4 +64,9 @@ public class DataUpdaterImp implements DataUpdater {
 			position++;
 		}
 	}
+
+	public SqlConnectionProvider getSqlConnectionProvider() {
+		// needed for test
+		return sqlConnectionProvider;
+	}
 }
