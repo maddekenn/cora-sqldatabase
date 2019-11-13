@@ -33,32 +33,32 @@ public class RecordUpdaterImp implements RecordUpdater {
 	}
 
 	@Override
-	public void updateRecordInDbUsingTableAndValuesAndConditions(String tableName,
-			Map<String, Object> columns, Map<String, Object> conditions) {
+	public void updateTableUsingNameAndColumnsWithValuesAndConditions(String tableName,
+			Map<String, Object> columnsWithValues, Map<String, Object> conditions) {
 
-		StringBuilder sql = createSql(tableName, columns, conditions);
-		List<Object> valuesForUpdate = addColumnsAndConditionsToValuesForUpdate(columns,
+		StringBuilder sql = createSql(tableName, columnsWithValues, conditions);
+		List<Object> valuesForUpdate = addColumnsAndConditionsToValuesForUpdate(columnsWithValues,
 				conditions);
 
 		dataUpdater.executeUsingSqlAndValues(sql.toString(), valuesForUpdate);
 	}
 
-	private StringBuilder createSql(String tableName, Map<String, Object> columns,
+	private StringBuilder createSql(String tableName, Map<String, Object> columnsWithValues,
 			Map<String, Object> conditions) {
-		StringBuilder sql = new StringBuilder(createSelectPartOfSqlStatement(tableName, columns));
+		StringBuilder sql = new StringBuilder(createSettingPartOfSqlStatement(tableName, columnsWithValues));
 		sql.append(createWherePartOfSqlStatement(conditions));
 		return sql;
 	}
 
-	private String createSelectPartOfSqlStatement(String tableName, Map<String, Object> columns) {
+	private String createSettingPartOfSqlStatement(String tableName, Map<String, Object> columnsWithValues) {
 		StringBuilder sql = new StringBuilder("update " + tableName + " set ");
-		List<String> columnNames = getAllColumnNames(columns);
+		List<String> columnNames = getAllColumnNames(columnsWithValues);
 		return appendColumnsToSelectPart(sql, columnNames);
 	}
 
-	private List<String> getAllColumnNames(Map<String, Object> columns) {
-		List<String> columnNames = new ArrayList<>(columns.size());
-		for (Entry<String, Object> column : columns.entrySet()) {
+	private List<String> getAllColumnNames(Map<String, Object> columnsWithValues) {
+		List<String> columnNames = new ArrayList<>(columnsWithValues.size());
+		for (Entry<String, Object> column : columnsWithValues.entrySet()) {
 			columnNames.add(column.getKey());
 		}
 		return columnNames;

@@ -41,14 +41,14 @@ public class DataUpdaterImp implements DataUpdater {
 	@Override
 	public int executeUsingSqlAndValues(String sql, List<Object> values) {
 		try {
-			return readUsingSqlAndValues(sql, values);
+			return updateUsingSqlAndValues(sql, values);
 		} catch (SQLException e) {
 			throw SqlStorageException.withMessageAndException("Error executing statement: " + sql,
 					e);
 		}
 	}
 
-	private int readUsingSqlAndValues(String sql, List<Object> values) throws SQLException {
+	private int updateUsingSqlAndValues(String sql, List<Object> values) throws SQLException {
 		try (Connection connection = sqlConnectionProvider.getConnection();
 				PreparedStatement prepareStatement = connection.prepareStatement(sql);) {
 			addParameterValuesToPreparedStatement(values, prepareStatement);

@@ -22,7 +22,7 @@ import java.util.Map;
 
 public interface RecordUpdater {
 
-	void updateRecordInDbUsingTableAndValuesAndConditions(String tableName,
+	void updateTableUsingNameAndColumnsWithValuesAndConditions(String tableName,
 			Map<String, Object> values, Map<String, Object> conditions);
 
 }

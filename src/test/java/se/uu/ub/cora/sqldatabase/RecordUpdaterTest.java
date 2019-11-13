@@ -48,7 +48,7 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testUpdateOneRecordOneColumnOneCondition() {
-		recordUpdater.updateRecordInDbUsingTableAndValuesAndConditions("organisation", values,
+		recordUpdater.updateTableUsingNameAndColumnsWithValuesAndConditions("organisation", values,
 				conditions);
 		DataUpdaterSpy dataUpdaterSpy = (DataUpdaterSpy) recordUpdater.getDataUpdater();
 		assertEquals(dataUpdaterSpy.sql,
@@ -61,7 +61,7 @@ public class RecordUpdaterTest {
 	@Test
 	public void testUpdateOneRecordTwoColumnsOneCondition() {
 		values.put("organisation_code", "someNewOrgCode");
-		recordUpdater.updateRecordInDbUsingTableAndValuesAndConditions("organisation", values,
+		recordUpdater.updateTableUsingNameAndColumnsWithValuesAndConditions("organisation", values,
 				conditions);
 		DataUpdaterSpy dataUpdaterSpy = (DataUpdaterSpy) recordUpdater.getDataUpdater();
 		assertEquals(dataUpdaterSpy.sql,
@@ -76,7 +76,7 @@ public class RecordUpdaterTest {
 	public void testUpdateOneRecordTwoColumnsTwoConditions() {
 		values.put("organisation_code", "someNewOrgCode");
 		conditions.put("country_code", "swe");
-		recordUpdater.updateRecordInDbUsingTableAndValuesAndConditions("organisation", values,
+		recordUpdater.updateTableUsingNameAndColumnsWithValuesAndConditions("organisation", values,
 				conditions);
 		DataUpdaterSpy dataUpdaterSpy = (DataUpdaterSpy) recordUpdater.getDataUpdater();
 		assertEquals(dataUpdaterSpy.sql,
