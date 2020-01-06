@@ -24,33 +24,23 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
 
-public class RecordCreatorImp implements RecordCreator {
+public class RecordDeleterImp implements RecordDeleter {
 
 	private DataUpdater dataUpdater;
 
-	public RecordCreatorImp(DataUpdater dataUpdater) {
+	public RecordDeleterImp(DataUpdater dataUpdater) {
 		this.dataUpdater = dataUpdater;
 	}
 
 	@Override
-	public DataUpdater getDataUpdater() {
-		return dataUpdater;
-	}
+	public void deleteFromTableUsingConditions(String tableName, Map<String, Object> conditions) {
+		StringBuilder sql = new StringBuilder("delete from " + tableName + " where ");
+		List<String> columnNames = getAllColumnNames(conditions);
+		appendColumnNamesToDeletePart(sql, columnNames);
+		List<Object> columnValues = getAllColumnValues(conditions);
 
-	@Override
-	public void insertIntoTableUsingNameAndColumnsWithValues(String tableName,
-			Map<String, Object> columnsWithValues) {
-		StringBuilder sql = createSql(tableName, columnsWithValues);
-		List<Object> columnValues = getAllColumnValues(columnsWithValues);
 		dataUpdater.executeUsingSqlAndValues(sql.toString(), columnValues);
-	}
 
-	private StringBuilder createSql(String tableName, Map<String, Object> columnsWithValues) {
-		StringBuilder sql = new StringBuilder("insert into " + tableName + "(");
-		List<String> columnNames = getAllColumnNames(columnsWithValues);
-		appendColumnNamesToInsertPart(sql, columnNames);
-		appendValuesPart(sql, columnNames);
-		return sql;
 	}
 
 	private List<String> getAllColumnNames(Map<String, Object> columnsWithValues) {
@@ -61,8 +51,8 @@ public class RecordCreatorImp implements RecordCreator {
 		return columnNames;
 	}
 
-	private String appendColumnNamesToInsertPart(StringBuilder sql, List<String> columnNames) {
-		StringJoiner joiner = new StringJoiner(", ");
+	private String appendColumnNamesToDeletePart(StringBuilder sql, List<String> columnNames) {
+		StringJoiner joiner = new StringJoiner(" and ");
 		addAllToJoiner(columnNames, joiner);
 		sql.append(joiner);
 		return sql.toString();
@@ -70,22 +60,8 @@ public class RecordCreatorImp implements RecordCreator {
 
 	private void addAllToJoiner(List<String> columnNames, StringJoiner joiner) {
 		for (String columnName : columnNames) {
-			joiner.add(columnName);
+			joiner.add(columnName + " = ?");
 		}
-	}
-
-	private void appendValuesPart(StringBuilder sql, List<String> columnNames) {
-		sql.append(") values(");
-		sql.append(addCorrectNumberOfPlaceHoldersForValues(columnNames));
-		sql.append(")");
-	}
-
-	private String addCorrectNumberOfPlaceHoldersForValues(List<String> columnNames) {
-		StringJoiner joiner = new StringJoiner(", ");
-		for (int i = 0; i < columnNames.size(); i++) {
-			joiner.add("?");
-		}
-		return joiner.toString();
 	}
 
 	private List<Object> getAllColumnValues(Map<String, Object> columnsWithValues) {
@@ -96,4 +72,8 @@ public class RecordCreatorImp implements RecordCreator {
 		return columnValues;
 	}
 
+	@Override
+	public DataUpdater getDataUpdater() {
+		return dataUpdater;
+	}
 }
