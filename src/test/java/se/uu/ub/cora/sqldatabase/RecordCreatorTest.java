@@ -41,7 +41,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testDataUpdaterInRecordUpdater() {
+	public void testDataUpdaterInRecordCreator() {
 		assertEquals(recordCreator.getDataUpdater(), dataUpdater);
 	}
 

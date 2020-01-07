@@ -40,7 +40,7 @@ public class RecordDeleterTest {
 	}
 
 	@Test
-	public void testDataUpdaterInRecordUpdater() {
+	public void testDataUpdaterInRecordDeleter() {
 		assertEquals(recordDeleter.getDataUpdater(), dataUpdater);
 	}
 
