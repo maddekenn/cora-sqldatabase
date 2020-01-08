@@ -28,7 +28,7 @@ public class RecordCreatorFactoryImp implements RecordCreatorFactory {
 		this.sqlConnectionProvider = connectionProvider;
 	}
 
-	public static RecordCreatorFactory usingSqlConnectionProvider(
+	public static RecordCreatorFactoryImp usingSqlConnectionProvider(
 			SqlConnectionProvider connectionProvider) {
 		return new RecordCreatorFactoryImp(connectionProvider);
 	}

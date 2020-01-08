@@ -28,7 +28,7 @@ public class RecordDeleterFactoryImp implements RecordDeleterFactory {
 		this.sqlConnectionProvider = sqlConnectionProvider;
 	}
 
-	public static RecordDeleterFactory usingSqlConnectionProvider(
+	public static RecordDeleterFactoryImp usingSqlConnectionProvider(
 			SqlConnectionProvider sqlConnectionProvider) {
 		return new RecordDeleterFactoryImp(sqlConnectionProvider);
 	}
