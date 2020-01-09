@@ -32,4 +32,6 @@ public interface RecordReader {
 	Map<String, Object> readOneRowFromDbUsingTableAndConditions(String tableName,
 			Map<String, Object> conditions);
 
+	Map<String, Object> readNextValueFromSequence(String sequenceName);
+
 }
