@@ -42,8 +42,7 @@ public class RecordReaderTest {
 		conditions.put("alpha2code", "SE");
 		dataReader = new DataReaderSpy();
 		sqlConnectionProviderSpy = new SqlConnectionProviderSpy();
-		recordReader = RecordReaderImp
-				.usingDataReader(dataReader);
+		recordReader = RecordReaderImp.usingDataReader(dataReader);
 	}
 
 	@Test
@@ -62,16 +61,14 @@ public class RecordReaderTest {
 	public void testReadSqlErrorThrowsError() throws Exception {
 		dataReader.throwError = true;
 		sqlConnectionProviderSpy.returnErrorConnection = true;
-		recordReader = RecordReaderImp
-				.usingDataReader(dataReader);
+		recordReader = RecordReaderImp.usingDataReader(dataReader);
 		recordReader.readAllFromTable("someTableName");
 	}
 
 	@Test
 	public void testReadSqlErrorThrowsErrorAndSendsAlongOriginalError() throws Exception {
 		sqlConnectionProviderSpy.returnErrorConnection = true;
-		recordReader = RecordReaderImp
-				.usingDataReader(dataReader);
+		recordReader = RecordReaderImp.usingDataReader(dataReader);
 		try {
 			recordReader.readAllFromTable("someTableName");
 		} catch (Exception e) {
@@ -88,8 +85,7 @@ public class RecordReaderTest {
 	@Test
 	public void testReadOneSqlErrorThrowsErrorAndSendsAlongOriginalError() throws Exception {
 		sqlConnectionProviderSpy.returnErrorConnection = true;
-		recordReader = RecordReaderImp
-				.usingDataReader(dataReader);
+		recordReader = RecordReaderImp.usingDataReader(dataReader);
 		try {
 			recordReader.readOneRowFromDbUsingTableAndConditions("someTableName", conditions);
 		} catch (Exception e) {
@@ -174,9 +170,19 @@ public class RecordReaderTest {
 			+ "Error reading data from someTableName")
 	public void testReadFromTableUsingConditionSqlErrorThrowsError() throws Exception {
 		dataReader.throwError = true;
-		recordReader = RecordReaderImp
-				.usingDataReader(dataReader);
+		recordReader = RecordReaderImp.usingDataReader(dataReader);
 		recordReader.readFromTableUsingConditions("someTableName", conditions);
+	}
+
+	@Test
+	public void testReadNextFromSequence() {
+		String sequenceName = "someSequence";
+		Map<String, Object> result = recordReader.readNextValueFromSequence(sequenceName);
+		assertTrue(dataReader.readOneRowFromDbUsingTableAndConditionsWasCalled);
+		assertTrue(dataReader.values.isEmpty());
+		assertEquals(dataReader.sql, "select nextval('someSequence')");
+
+		assertSame(result, dataReader.oneRowResult);
 	}
 
 }

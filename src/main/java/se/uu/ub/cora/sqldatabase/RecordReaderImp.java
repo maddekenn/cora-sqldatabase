@@ -119,4 +119,10 @@ public final class RecordReaderImp implements RecordReader {
 		return dataReader;
 	}
 
+	@Override
+	public Map<String, Object> readNextValueFromSequence(String sequenceName) {
+		return dataReader.readOneRowOrFailUsingSqlAndValues(
+				"select nextval('" + sequenceName + "')", Collections.emptyList());
+	}
+
 }

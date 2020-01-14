@@ -57,10 +57,10 @@ public class DataUpdaterImp implements DataUpdater {
 	}
 
 	private void addParameterValuesToPreparedStatement(List<Object> values,
-			PreparedStatement prepareStatement) throws SQLException {
+			PreparedStatement preparedStatement) throws SQLException {
 		int position = 1;
 		for (Object value : values) {
-			prepareStatement.setObject(position, value);
+			preparedStatement.setObject(position, value);
 			position++;
 		}
 	}
