@@ -77,7 +77,7 @@ public class RecordCreatorImp implements RecordCreator {
 	private void appendValuesPart(StringBuilder sql, List<String> columnNames) {
 		sql.append(") values(");
 		sql.append(addCorrectNumberOfPlaceHoldersForValues(columnNames));
-		sql.append(")");
+		sql.append(')');
 	}
 
 	private String addCorrectNumberOfPlaceHoldersForValues(List<String> columnNames) {
