@@ -33,6 +33,7 @@ public class PreparedStatementSpy implements PreparedStatement {
 	public boolean closeWasCalled = false;
 	public Map<String, String> usedSetStrings = new HashMap<>();
 	public Map<String, Object> usedSetObjects = new HashMap<>();
+	public Map<String, Object> usedSetTimestamps = new HashMap<>();
 	public int noOfAffectedRows = 0;
 
 	@Override
@@ -389,7 +390,7 @@ public class PreparedStatementSpy implements PreparedStatement {
 
 	@Override
 	public void setTimestamp(int parameterIndex, Timestamp x) throws SQLException {
-		// TODO Auto-generated method stub
+		usedSetTimestamps.put(String.valueOf(parameterIndex), x);
 
 	}
 

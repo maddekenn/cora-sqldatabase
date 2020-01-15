@@ -21,7 +21,9 @@ package se.uu.ub.cora.sqldatabase;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -42,7 +44,6 @@ public class DataUpdaterTest {
 		sqlConnectionProviderSpy = new SqlConnectionProviderSpy();
 		dataUpdater = DataUpdaterImp.usingSqlConnectionProvider(sqlConnectionProviderSpy);
 		values = new ArrayList<>();
-
 	}
 
 	@Test
@@ -114,5 +115,19 @@ public class DataUpdaterTest {
 		values.add("SWE");
 		int updatedRows = dataUpdater.executeUsingSqlAndValues(sql, values);
 		assertEquals(updatedRows, 5);
+	}
+
+	@Test
+	public void testSetTimestampPreparedStatement() throws Exception {
+		PreparedStatementSpy preparedStatementSpy = sqlConnectionProviderSpy.connection.preparedStatementSpy;
+		values.add("SE");
+
+		Date today = new Date();
+		long time = today.getTime();
+		Timestamp timestamp = new Timestamp(time);
+		values.add(timestamp);
+		dataUpdater.executeUsingSqlAndValues(sql, values);
+		assertEquals(preparedStatementSpy.usedSetObjects.get("1"), "SE");
+		assertTrue(preparedStatementSpy.usedSetTimestamps.get("2") instanceof Timestamp);
 	}
 }

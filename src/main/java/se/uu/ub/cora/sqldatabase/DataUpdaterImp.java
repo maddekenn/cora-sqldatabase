@@ -21,6 +21,7 @@ package se.uu.ub.cora.sqldatabase;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
 import se.uu.ub.cora.connection.SqlConnectionProvider;
@@ -60,7 +61,11 @@ public class DataUpdaterImp implements DataUpdater {
 			PreparedStatement preparedStatement) throws SQLException {
 		int position = 1;
 		for (Object value : values) {
-			preparedStatement.setObject(position, value);
+			if (value instanceof Timestamp) {
+				preparedStatement.setTimestamp(position, (Timestamp) value);
+			} else {
+				preparedStatement.setObject(position, value);
+			}
 			position++;
 		}
 	}
