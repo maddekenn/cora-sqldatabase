@@ -298,6 +298,10 @@ public class DataReaderImpTest {
 		executePreparedStatementUsingSqlAndValuesMakeSureErrorIsThrown(SOME_SQL, null);
 		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
 				ERROR_READING_DATA_USING_SQL + SOME_SQL);
+		Exception exceptionInErrorLog = loggerFactorySpy
+				.getErrorLogExceptionsUsingClassNameAndNo(testedClassName, 0);
+		assertNotNull(exceptionInErrorLog);
+		assertEquals(exceptionInErrorLog.getMessage(), "error thrown from prepareStatement in spy");
 	}
 
 	private void executePreparedStatementUsingSqlAndValuesMakeSureErrorIsThrown(String sql,
