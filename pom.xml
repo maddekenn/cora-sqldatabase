@@ -36,7 +36,7 @@
 
 	<properties>
 		<logger.version>2.1.0</logger.version>
-		<postgres.version>42.2.16.jre7</postgres.version>
+		<postgres.version>42.2.16</postgres.version>
 	</properties>
 
 	<scm>
