@@ -39,16 +39,20 @@ public final class RecordReaderImp implements RecordReader {
 
 	@Override
 	public List<Map<String, Object>> readAllFromTable(String tableName) {
+		String sql = createSelectAllFor(tableName);
+		return readAllFromTableUsingSql(tableName, sql);
+	}
+
+	private List<Map<String, Object>> readAllFromTableUsingSql(String tableName, String sql) {
 		try {
-			return tryToReadAllFromTable(tableName);
+			return tryToReadAllFromTable(sql);
 		} catch (SqlStorageException e) {
 			throw SqlStorageException.withMessageAndException(ERROR_READING_DATA_FROM + tableName,
 					e);
 		}
 	}
 
-	private List<Map<String, Object>> tryToReadAllFromTable(String tableName) {
-		String sql = createSelectAllFor(tableName);
+	private List<Map<String, Object>> tryToReadAllFromTable(String sql) {
 		return dataReader.executePreparedStatementQueryUsingSqlAndValues(sql,
 				Collections.emptyList());
 
@@ -123,6 +127,28 @@ public final class RecordReaderImp implements RecordReader {
 	public Map<String, Object> readNextValueFromSequence(String sequenceName) {
 		return dataReader.readOneRowOrFailUsingSqlAndValues(
 				"select nextval('" + sequenceName + "')", Collections.emptyList());
+	}
+
+	@Override
+	public List<Map<String, Object>> readAllFromTable(String tableName,
+			ResultDelimiter resultDelimiter) {
+		String sql = createSelectAllFor(tableName);
+		sql = possiblyAddDelimiter(sql, resultDelimiter);
+		return readAllFromTableUsingSql(tableName, sql);
+	}
+
+	private String possiblyAddDelimiter(String sql, ResultDelimiter resultDelimiter) {
+		sql += possiblySetLimit(resultDelimiter, sql);
+		sql += possiblySetOffset(resultDelimiter, sql);
+		return sql;
+	}
+
+	private String possiblySetLimit(ResultDelimiter resultDelimiter, String sql) {
+		return resultDelimiter.limit != null ? " limit " + resultDelimiter.limit : "";
+	}
+
+	private String possiblySetOffset(ResultDelimiter resultDelimiter, String sql) {
+		return resultDelimiter.offset != null ? " offset " + resultDelimiter.offset : "";
 	}
 
 }

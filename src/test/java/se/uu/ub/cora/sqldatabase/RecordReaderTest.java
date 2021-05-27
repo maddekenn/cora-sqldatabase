@@ -58,11 +58,45 @@ public class RecordReaderTest {
 
 	@Test(expectedExceptions = SqlStorageException.class, expectedExceptionsMessageRegExp = ""
 			+ "Error reading data from someTableName")
-	public void testReadSqlErrorThrowsError() throws Exception {
+	public void testReadAllFromTableSqlErrorThrowsError() throws Exception {
 		dataReader.throwError = true;
 		sqlConnectionProviderSpy.returnErrorConnection = true;
 		recordReader = RecordReaderImp.usingDataReader(dataReader);
 		recordReader.readAllFromTable("someTableName");
+	}
+
+	@Test
+	public void testReadAllResultsReturnsResultFromDataReaderWithFilter() throws Exception {
+		String tableName = "someTableName";
+		ResultDelimiter resultDelimiter = new ResultDelimiter(100, 10);
+
+		List<Map<String, Object>> results = recordReader.readAllFromTable(tableName,
+				resultDelimiter);
+		assertTrue(dataReader.executePreparedStatementQueryUsingSqlAndValuesWasCalled);
+		assertEquals(dataReader.sql, "select * from someTableName limit 100 offset 10");
+		assertTrue(dataReader.values.isEmpty());
+
+		assertEquals(results, dataReader.result);
+	}
+
+	@Test
+	public void testReadAllSqlWhenLimitIsNull() throws Exception {
+		String tableName = "someTableName";
+		ResultDelimiter resultDelimiter = new ResultDelimiter(null, 10);
+
+		recordReader.readAllFromTable(tableName, resultDelimiter);
+		assertEquals(dataReader.sql, "select * from someTableName offset 10");
+
+	}
+
+	@Test
+	public void testReadAllSqlWhenOffsetIsNull() throws Exception {
+		String tableName = "someTableName";
+		ResultDelimiter resultDelimiter = new ResultDelimiter(100, null);
+
+		recordReader.readAllFromTable(tableName, resultDelimiter);
+		assertEquals(dataReader.sql, "select * from someTableName limit 100");
+
 	}
 
 	@Test
